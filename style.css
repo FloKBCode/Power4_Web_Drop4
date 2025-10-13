@@ -118,3 +118,78 @@ h1 {
   flex-direction: column;
   align-items: center;
 }
+
+/* === MESSAGES VICTOIRE === */
+.player-info.winner {
+  font-size: 2.5em;
+  padding: 20px 50px;
+  color: #fff;
+  background: linear-gradient(135deg, #FFD700, #FFB347, #FF7E00);
+  border-radius: 15px;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+  animation: pulse-glow 1.5s ease-in-out infinite;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+/* === BOUTON RESET === */
+.reset-btn {
+  margin-top: 25px;
+  padding: 15px 45px;
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  letter-spacing: 0.5px;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #27ae60, #1e8449);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.25);
+}
+
+.reset-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* === MESSAGE ERREUR === */
+.error-message {
+  background: linear-gradient(135deg, #dc3545, #b02a37);
+  color: #fff;
+  padding: 15px 25px;
+  border-radius: 10px;
+  margin: 20px 0;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+  animation: shake 0.4s ease;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+/* === ANIMATIONS === */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 45px rgba(255, 215, 0, 1);
+  }
+}
