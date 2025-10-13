@@ -3,20 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puissance 4 - Jeu</title>
-    <style>
-        /* Tout le CSS est ici pour l'instant /
-        / (copie le CSS de l'artifact) */
-    </style>
+    <title>Power4 Web</title>
+    {{if .Error}}
+    <div class="error-message">
+        ⚠️ {{.Error}}
+    </div>
+    {{end}}
+    <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <div class="game-container">
-        <!-- HTML ici -->
-    </div>
+        <h1>🎮 Power 4 Web</h1>
+        
+        <!-- Infos joueur actuel -->
+        {{if .GameOver}}
+            {{if eq .Winner 0}}
+                <div class="player-info winner">🤝 Match nul !</div>
+            {{else}}
+                <div class="player-info winner">🏆 Joueur {{.Winner}} gagne !</div>
+            {{end}}
+            <form action="/reset" method="POST">
+                <button type="submit" class="reset-btn">🔄 Rejouer</button>
+            </form>
+        {{else}}
+            <div class="player-info">
+                {{if eq .Player 1}}
+                    🔴 Au tour du Joueur 1
+                {{else}}
+                    🟡 Au tour du Joueur 2
+                {{end}}
+            </div>
+        {{end}}
 
-    <script>
-        // Tout le JavaScript est ici pour l'instant
-        // (copie le JS de l'artifact)
-    </script>
+        <!-- Grille de jeu -->
+        <div class="grid">
+            {{range $i, $row := .Grid}}
+                {{range $j, $cell := $row}}
+                    <div class="cell">
+                        {{if eq $cell 0}}
+                            <!-- Case vide -->
+                        {{else if eq $cell 1}}
+                            <div class="token red"></div>
+                        {{else}}
+                            <div class="token yellow"></div>
+                        {{end}}
+                    </div>
+                {{end}}
+            {{end}}
+        </div>
+
+        <!-- Boutons colonnes -->
+        {{if not .GameOver}}
+        <div class="controls">
+            {{range $i := Seq 7}}
+                <form action="/play" method="POST" style="display:inline;">
+                    <input type="hidden" name="column" value="{{$i}}">
+                    <button type="submit" class="column-btn">↓</button>
+                </form>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
 </body>
 </html>
