@@ -8,16 +8,23 @@ import (
     "fmt"
 )
 
-var board *game.Board
-var tmpl *template.Template
+var (
+ board *game.Board
+ tmpl *template.Template
+ scoreP1 int
+ scoreP2 int
+)
+
+type GameData struct {
+ *game.Board
+ ScoreP1 int
+ ScoreP2 int
+}
+
 
 func main() {
     board = game.NewBoard()
-		funcMap := template.FuncMap{
-        "Seq": Seq,
-    }
-		tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
-    
+		
     // Routes obligatoires
     http.HandleFunc("/", homeHandler)
     http.HandleFunc("/play", playHandler)
@@ -31,7 +38,12 @@ func main() {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-    err := tmpl.ExecuteTemplate(w, "game.html", board)
+	data := GameData{
+	Board: board,
+	ScoreP1: scoreP1,
+	ScoreP2: scoreP2,
+	}
+    err := tmpl.ExecuteTemplate(w, "game.html", data)
     if err != nil {
         fmt.Println("Erreur de rendu template :", err)
     }
@@ -62,8 +74,15 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
-    board.Reset()
-    http.Redirect(w, r, "/", http.StatusSeeOther)
+	if board.GameOver {
+	if board.Winner == 1 {
+	scoreP1++
+	} else if board.Winner == 2 {
+	scoreP2++
+	}
+	}
+	board.Reset()
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func init() {
@@ -85,4 +104,17 @@ func Seq(n int) []int {
         seq[i] = i
     }
     return seq
+}
+
+func init() {
+    funcMap := template.FuncMap{
+        "Seq": func(n int) []int {
+            result := make([]int, n)
+            for i := range result {
+                result[i] = i
+            }
+            return result
+        },
+    }
+    tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
 }
