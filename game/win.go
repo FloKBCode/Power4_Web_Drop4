@@ -5,6 +5,7 @@ func (b *Board) Reset() {
 	b.Player = 1
 	b.Winner = 0
 	b.GameOver = false
+    b.History = []Move{}
 }
 
 func (b *Board) IsFull() bool {
