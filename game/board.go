@@ -8,6 +8,8 @@ const (
 type Board struct {
 	Grid   [Ligne][Colonnes]int
 	Player int
+    Winner   int  
+    GameOver bool
 }
 
 // Créer un plateau vide
