@@ -10,6 +10,7 @@ type Board struct {
 	Player int
     Winner   int  
     GameOver bool
+    Error  string
 }
 
 // Créer un plateau vide
@@ -20,7 +21,8 @@ func NewBoard() *Board {
 
 func (b *Board) Move(col int) bool {
     if col < 0 || col >= Colonnes {
-        return false // colonne invalide
+        b.Error = "Colonne invalide"
+        return false
     }
 
     for ligne := Ligne - 1; ligne >= 0; ligne-- { // part du bas
