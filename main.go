@@ -9,29 +9,28 @@ import (
 )
 
 var (
- board *game.Board
- tmpl *template.Template
- scoreP1 int
- scoreP2 int
+    board   *game.Board
+    tmpl    *template.Template
+    scoreP1 int
+    scoreP2 int
 )
 
 type GameData struct {
- *game.Board
- ScoreP1 int
- ScoreP2 int
- ErrorMessage string
+    *game.Board
+    ScoreP1 int
+    ScoreP2 int
+    ErrorMessage string
 }
-
 
 func main() {
     board = game.NewBoard()
-		
-    // Routes obligatoires
-    http.HandleFunc("/", homePageHandler)        // Page accueil
+    
+    // Routes
+    http.HandleFunc("/", homePageHandler)        // Page accueil avec formulaire
     http.HandleFunc("/start", startGameHandler)  // POST démarrage
     http.HandleFunc("/game", gameHandler)        // Page jeu
-    http.HandleFunc("/play", playHandler)
-    http.HandleFunc("/reset", resetHandler)
+    http.HandleFunc("/play", playHandler)        // Jouer un coup
+    http.HandleFunc("/reset", resetHandler)      // Réinitialiser
     
     // Servir fichiers statiques
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -40,61 +39,14 @@ func main() {
     http.ListenAndServe(":8088", nil)
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	data := GameData{
-	Board: board,
-	ScoreP1: scoreP1,
-	ScoreP2: scoreP2,
-	}
-    err := tmpl.ExecuteTemplate(w, "game.html", data)
-    if err != nil {
-        fmt.Println("Erreur de rendu template :", err)
-    }
-}
-
-func playHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != "POST" {
-        http.Redirect(w, r, "/", http.StatusSeeOther)
-        return
-    }
-    
-    colStr := r.FormValue("column")
-    col, err := strconv.Atoi(colStr)
-    
-    if err != nil || col < 0 || col >= 7 {
-        // Gérer erreur
-        http.Redirect(w, r, "/", http.StatusSeeOther)
-        return
-    }
-    
-    if board.IsColumnFull(col) {
-        // On pourrait stocker l'erreur mais on fait juste rien
-        http.Redirect(w, r, "/", http.StatusSeeOther)
-        return
-    }
-    
-		board.Move(col)
-    board.CheckWin()
-    http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func resetHandler(w http.ResponseWriter, r *http.Request) {
-	if board.GameOver {
-	if board.Winner == 1 {
-	scoreP1++
-	} else if board.Winner == 2 {
-	scoreP2++
-	}
-	}
-
-	p1 := board.Player1Name
-	p2 := board.Player2Name
-    
-	board = game.NewBoardWithNames(p1, p2)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
+    // Si on a déjà une partie en cours, afficher directement le jeu
+    if board.Player1Name != "Joueur 1" || board.TotalMoves > 0 {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+        return
+    }
+    
+    // Sinon afficher la page d'accueil
     tmpl.ExecuteTemplate(w, "home.html", nil)
 }
 
@@ -132,18 +84,58 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func gameHandler(w http.ResponseWriter, r *http.Request) {
-    if board == nil {
-        http.Redirect(w, r, "/", http.StatusSeeOther)
-        return
-    }
-    
     data := GameData{
         Board:   board,
         ScoreP1: scoreP1,
         ScoreP2: scoreP2,
     }
     
-    tmpl.ExecuteTemplate(w, "game.html", data)
+    err := tmpl.ExecuteTemplate(w, "game.html", data)
+    if err != nil {
+        fmt.Println("Erreur de rendu template:", err)
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+    }
+}
+
+func playHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+        return
+    }
+    
+    colStr := r.FormValue("column")
+    col, err := strconv.Atoi(colStr)
+    
+    if err != nil || col < 0 || col >= 7 {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+        return
+    }
+    
+    if board.IsColumnFull(col) {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+        return
+    }
+    
+    board.Move(col)
+    board.CheckWin()
+    
+    http.Redirect(w, r, "/game", http.StatusSeeOther)
+}
+
+func resetHandler(w http.ResponseWriter, r *http.Request) {
+    if board.GameOver {
+        if board.Winner == 1 {
+            scoreP1++
+        } else if board.Winner == 2 {
+            scoreP2++
+        }
+    }
+
+    p1 := board.Player1Name
+    p2 := board.Player2Name
+    
+    board = game.NewBoardWithNames(p1, p2)
+    http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
 func init() {
@@ -155,23 +147,9 @@ func init() {
             }
             return result
         },
-				"add": func(a, b int) int {
+        "add": func(a, b int) int {
             return a + b
         },
-				"IsColumnFull": func(col int) bool {
-        if board != nil {
-            return board.IsColumnFull(col)
-        }
-        return false
-    		},
     }
     tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
-}
-
-func Seq(n int) []int {
-    seq := make([]int, n)
-    for i := range seq {
-        seq[i] = i
-    }
-    return seq
 }

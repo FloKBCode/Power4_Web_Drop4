@@ -3,40 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power4 Web</title>
-    {{if .Error}}
-    <div class="error-message">
-        ⚠️ {{.Error}}
-    </div>
-    {{end}}
+    <title>Power 4 - Partie en cours</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
-    <div class="game-container">
-        <h1>🎮 Power 4 Web</h1>
-        
-        <!-- Infos joueur actuel -->
-        {{if .GameOver}}
-            {{if eq .Winner 0}}
-                <div class="player-info winner">🤝 Match nul !</div>
-            {{else}}
-                <div class="player-info winner">🏆 Joueur {{.Winner}} gagne !</div>
-            {{end}}
-            <form action="/reset" method="POST">
-                <button type="submit" class="reset-btn">🔄 Rejouer</button>
-            </form>
-        {{else}}
-            <div class="player-info">
-                {{if eq .Player 1}}
-                    🔴 Au tour du Joueur 1
-                {{else}}
-                    🟡 Au tour du Joueur 2
-                {{end}}
-            </div>
-        {{end}}
+    <h1>🎮 Puissance 4 🎮</h1>
+    
+    <!-- TABLEAU DE SCORES -->
+    <div class="scoreboard neon">
+        <div class="player-label red">{{.Player1Name}}</div>
+        <div class="score-value">{{.ScoreP1}}</div>
+        <div class="score-separator">-</div>
+        <div class="score-value">{{.ScoreP2}}</div>
+        <div class="player-label yellow">{{.Player2Name}}</div>
+    </div>
 
-        <!-- Grille de jeu -->
+    <!-- Infos joueur actuel -->
+    {{if .GameOver}}
+        {{if eq .Winner 0}}
+            <div class="player-info winner">🤝 Match nul !</div>
+        {{else}}
+            <div class="player-info winner">🏆 {{.GetWinnerName}} a gagné !</div>
+        {{end}}
+    {{else}}
+        <div class="player-info">
+            {{if eq .Player 1}}
+                🔴 Au tour de {{.Player1Name}}
+            {{else}}
+                🟡 Au tour de {{.Player2Name}}
+            {{end}}
+        </div>
+    {{end}}
+
+    {{if .ErrorMessage}}
+    <div class="error-message">
+        ⚠️ {{.ErrorMessage}}
+    </div>
+    {{end}}
+
+    <!-- Grille de jeu -->
+    <div class="game-container">
         <div class="grid">
             {{range $i, $row := .Grid}}
                 {{range $j, $cell := $row}}
@@ -52,21 +58,33 @@
                 {{end}}
             {{end}}
         </div>
+    </div>
 
-        <!-- Boutons colonnes -->
-        {{if not .GameOver}}
-        <div class="controls">
-            {{range $i := Seq 7}}
-                <form action="/play" method="POST" style="display:inline;">
-                    <input type="hidden" name="column" value="{{$i}}">
-                    <button type="submit" class="column-btn" 
-                            {{if $.IsColumnFull $i}}disabled{{end}}>
-                        ↓
-                    </button>
-                </form>
-            {{end}}
-        </div>
+    <!-- Boutons colonnes -->
+    {{if not .GameOver}}
+    <div class="controls">
+        {{range $i := Seq 7}}
+            <form action="/play" method="POST" style="display:inline;">
+                <input type="hidden" name="column" value="{{$i}}">
+                <button type="submit" class="column-btn" 
+                        {{if $.Board.IsColumnFull $i}}disabled{{end}}>
+                    ↓
+                </button>
+            </form>
         {{end}}
+    </div>
+    {{end}}
+
+    <!-- Bouton rejouer -->
+    <div class="button-container">
+        {{if .GameOver}}
+            <form action="/reset" method="POST">
+                <button type="submit" class="reset-btn">🔄 Nouvelle Partie</button>
+            </form>
+        {{end}}
+        <form action="/" method="GET">
+            <button type="submit" class="score-reset-btn">🏠 Menu Principal</button>
+        </form>
     </div>
 </body>
 </html>
