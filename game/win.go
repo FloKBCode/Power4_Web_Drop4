@@ -6,6 +6,8 @@ func (b *Board) Reset() {
 	b.Winner = 0
 	b.GameOver = false
     b.History = []Move{}
+    b.TotalMoves = 0
+    b.Error = ""
 }
 
 func (b *Board) IsFull() bool {
@@ -97,4 +99,13 @@ func (b *Board) checkDiagonalDown() bool {
         }
     }
     return false
+}
+
+func (b *Board) GetWinnerName() string {
+    if b.Winner == 1 {
+        return b.Player1Name
+    } else if b.Winner == 2 {
+        return b.Player2Name
+    }
+    return ""
 }

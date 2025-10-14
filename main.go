@@ -27,7 +27,9 @@ func main() {
     board = game.NewBoard()
 		
     // Routes obligatoires
-    http.HandleFunc("/", homeHandler)
+    http.HandleFunc("/", homePageHandler)        // Page accueil
+    http.HandleFunc("/start", startGameHandler)  // POST démarrage
+    http.HandleFunc("/game", gameHandler)        // Page jeu
     http.HandleFunc("/play", playHandler)
     http.HandleFunc("/reset", resetHandler)
     
@@ -84,8 +86,64 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
 	scoreP2++
 	}
 	}
-	board.Reset()
+
+	p1 := board.Player1Name
+	p2 := board.Player2Name
+    
+	board = game.NewBoardWithNames(p1, p2)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func homePageHandler(w http.ResponseWriter, r *http.Request) {
+    tmpl.ExecuteTemplate(w, "home.html", nil)
+}
+
+func startGameHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }
+    
+    player1 := r.FormValue("player1")
+    player2 := r.FormValue("player2")
+    
+    // Validation
+    if player1 == "" {
+        player1 = "Joueur 1"
+    }
+    if player2 == "" {
+        player2 = "Joueur 2"
+    }
+    
+    // Limiter longueur
+    if len(player1) > 15 {
+        player1 = player1[:15]
+    }
+    if len(player2) > 15 {
+        player2 = player2[:15]
+    }
+    
+    // Nouvelle partie avec pseudos
+    board = game.NewBoardWithNames(player1, player2)
+    scoreP1 = 0
+    scoreP2 = 0
+    
+    http.Redirect(w, r, "/game", http.StatusSeeOther)
+}
+
+func gameHandler(w http.ResponseWriter, r *http.Request) {
+    if board == nil {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
+    }
+    
+    data := GameData{
+        Board:   board,
+        ScoreP1: scoreP1,
+        ScoreP2: scoreP2,
+    }
+    
+    tmpl.ExecuteTemplate(w, "game.html", data)
 }
 
 func init() {
@@ -116,17 +174,4 @@ func Seq(n int) []int {
         seq[i] = i
     }
     return seq
-}
-
-func init() {
-    funcMap := template.FuncMap{
-        "Seq": func(n int) []int {
-            result := make([]int, n)
-            for i := range result {
-                result[i] = i
-            }
-            return result
-        },
-    }
-    tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
 }
