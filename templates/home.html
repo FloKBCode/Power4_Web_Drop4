@@ -3,102 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power 4 - Accueil</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Power4 - Accueil</title>
     <style>
-        .welcome-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
             background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            padding: 50px;
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             max-width: 500px;
-            margin: 0 auto;
+            width: 100%;
+            text-align: center;
         }
-        
-        .welcome-title {
+
+        h1 {
             color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             text-align: left;
         }
-        
-        .form-group label {
+
+        label {
             display: block;
+            color: #333;
             font-weight: bold;
             margin-bottom: 8px;
-            color: #333;
             font-size: 1.1em;
         }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 1.1em;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        
-        .form-group input:focus {
-            border-color: #764ba2;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
-        }
-        
-        .start-btn {
+
+        input[type="text"] {
             width: 100%;
             padding: 15px;
-            font-size: 1.3em;
-            font-weight: bold;
-            color: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .player-icon {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .red-icon {
+            color: #ff0000;
+        }
+
+        .yellow-icon {
+            color: #ffff00;
+            text-shadow: 0 0 2px #000;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 18px;
             background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
             border: none;
             border-radius: 12px;
+            font-size: 1.4em;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 20px;
+            margin-top: 15px;
+            letter-spacing: 1px;
         }
-        
+
         .start-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
-        
+
         .start-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
-        
-        .emoji {
-            font-size: 3em;
-            margin-bottom: 20px;
+
+        .info-text {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="welcome-container">
-        <div class="emoji">🎮</div>
-        <h1 class="welcome-title">Puissance 4</h1>
+    <div class="container">
+        <h1>🎮 Power 4 🎮</h1>
+        <p class="subtitle">Commencez une nouvelle partie</p>
         
         <form action="/start" method="POST">
             <div class="form-group">
-                <label for="player1">🔴 Joueur 1 :</label>
-                <input type="text" id="player1" name="player1" 
-                       placeholder="Entrez votre pseudo" maxlength="15">
+                <label for="player1">
+                    <span class="player-icon red-icon">🔴</span>
+                    Joueur 1 (Rouge)
+                </label>
+                <input type="text" 
+                       id="player1" 
+                       name="player1" 
+                       placeholder="Entrez votre pseudo" 
+                       maxlength="15"
+                       required>
             </div>
-            
+
             <div class="form-group">
-                <label for="player2">🟡 Joueur 2 :</label>
-                <input type="text" id="player2" name="player2" 
-                       placeholder="Entrez votre pseudo" maxlength="15">
+                <label for="player2">
+                    <span class="player-icon yellow-icon">🟡</span>
+                    Joueur 2 (Jaune)
+                </label>
+                <input type="text" 
+                       id="player2" 
+                       name="player2" 
+                       placeholder="Entrez votre pseudo" 
+                       maxlength="15"
+                       required>
             </div>
-            
-            <button type="submit" class="start-btn">🚀 Commencer la partie</button>
+
+            <button type="submit" class="start-btn">
+                ▶️ Commencer la partie
+            </button>
         </form>
+
+        <p class="info-text">Les pseudos sont limités à 15 caractères</p>
     </div>
 </body>
 </html>

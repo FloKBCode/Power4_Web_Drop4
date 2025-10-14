@@ -3,55 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power 4 - Partie en cours</title>
+    <title>Power 4 - {{.Player1Name}} vs {{.Player2Name}}</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <h1>🎮 Puissance 4 🎮</h1>
     
-    <!-- TABLEAU DE SCORES -->
+    <!-- TABLEAU DE SCORES NÉON -->
     <div class="scoreboard neon">
         <div class="player-label red">{{.Player1Name}}</div>
-        <div class="score-value">{{.ScoreP1}}</div>
+        <div class="score-value" id="scoreRed">{{.ScoreP1}}</div>
         <div class="score-separator">-</div>
-        <div class="score-value">{{.ScoreP2}}</div>
+        <div class="score-value" id="scoreYellow">{{.ScoreP2}}</div>
         <div class="player-label yellow">{{.Player2Name}}</div>
     </div>
 
-    <!-- Infos joueur actuel -->
+    <!-- Info joueur actuel ou résultat -->
     {{if .GameOver}}
         {{if eq .Winner 0}}
-            <div class="player-info winner">🤝 Match nul !</div>
+            <div id="player-info" class="player-info winner">🤝 Match nul !</div>
+        {{else if eq .Winner 1}}
+            <div id="player-info" class="player-info winner">🏆 {{.Player1Name}} a gagné ! 🏆</div>
         {{else}}
-            <div class="player-info winner">🏆 {{.GetWinnerName}} a gagné !</div>
+            <div id="player-info" class="player-info winner">🏆 {{.Player2Name}} a gagné ! 🏆</div>
         {{end}}
     {{else}}
-        <div class="player-info">
+        <div id="player-info" class="player-info">
             {{if eq .Player 1}}
-                🔴 Au tour de {{.Player1Name}}
+                Au tour de {{.Player1Name}} 🔴
             {{else}}
-                🟡 Au tour de {{.Player2Name}}
+                Au tour de {{.Player2Name}} 🟡
             {{end}}
         </div>
     {{end}}
 
     {{if .ErrorMessage}}
-    <div class="error-message">
+    <div id="error-message" class="error-message">
         ⚠️ {{.ErrorMessage}}
     </div>
     {{end}}
 
-    <!-- Grille de jeu -->
     <div class="game-container">
-        <div class="grid">
-            {{range $i, $row := .Grid}}
-                {{range $j, $cell := $row}}
-                    <div class="cell">
-                        {{if eq $cell 0}}
-                            <!-- Case vide -->
-                        {{else if eq $cell 1}}
+        <!-- Grille de jeu -->
+        <div id="grid" class="grid">
+            {{range $rowIdx, $row := .Grid}}
+                {{range $colIdx, $cell := $row}}
+                    <div class="cell" data-row="{{$rowIdx}}" data-col="{{$colIdx}}">
+                        {{if eq $cell 1}}
                             <div class="token red"></div>
-                        {{else}}
+                        {{else if eq $cell 2}}
                             <div class="token yellow"></div>
                         {{end}}
                     </div>
@@ -62,12 +62,12 @@
 
     <!-- Boutons colonnes -->
     {{if not .GameOver}}
-    <div class="controls">
+    <div class="controls" id="controls">
         {{range $i := Seq 7}}
             <form action="/play" method="POST" style="display:inline;">
                 <input type="hidden" name="column" value="{{$i}}">
                 <button type="submit" class="column-btn" 
-                        {{if $.Board.IsColumnFull $i}}disabled{{end}}>
+                        aria-label="Colonne {{add $i 1}}">
                     ↓
                 </button>
             </form>
@@ -75,16 +75,96 @@
     </div>
     {{end}}
 
-    <!-- Bouton rejouer -->
+    <!-- Boutons de contrôle -->
     <div class="button-container">
-        {{if .GameOver}}
-            <form action="/reset" method="POST">
-                <button type="submit" class="reset-btn">🔄 Nouvelle Partie</button>
-            </form>
-        {{end}}
-        <form action="/" method="GET">
-            <button type="submit" class="score-reset-btn">🏠 Menu Principal</button>
+        <form action="/reset" method="POST" style="display:inline;">
+            <button type="submit" class="reset-btn">🔄 Nouvelle Partie</button>
+        </form>
+        <form action="/reset-scores" method="POST" style="display:inline;" 
+              onsubmit="return confirm('Êtes-vous sûr de vouloir réinitialiser tous les scores ?');">
+            <button type="submit" class="score-reset-btn">📊 Reset Scores</button>
+        </form>
+        <form action="/" method="GET" style="display:inline;">
+            <button type="submit" class="reset-btn" 
+                    style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                🏠 Menu Principal
+            </button>
         </form>
     </div>
+
+    <script>
+        // Animation des jetons au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokens = document.querySelectorAll('.token');
+            tokens.forEach((token, index) => {
+                // Réappliquer l'animation avec un délai pour chaque jeton
+                setTimeout(() => {
+                    token.style.animation = 'none';
+                    setTimeout(() => {
+                        token.style.animation = 'drop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                    }, 10);
+                }, index * 50);
+            });
+
+            // Animation du scoreboard
+            const scoreboard = document.querySelector('.scoreboard');
+            if (scoreboard) {
+                scoreboard.style.opacity = '0';
+                scoreboard.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    scoreboard.style.transition = 'all 0.5s ease';
+                    scoreboard.style.opacity = '1';
+                    scoreboard.style.transform = 'translateY(0)';
+                }, 100);
+            }
+
+            // Animation du message de victoire
+            const winner = document.querySelector('.player-info.winner');
+            if (winner) {
+                winner.style.transform = 'scale(0.8)';
+                winner.style.opacity = '0';
+                setTimeout(() => {
+                    winner.style.transition = 'all 0.5s ease';
+                    winner.style.transform = 'scale(1)';
+                    winner.style.opacity = '1';
+                }, 300);
+            }
+        });
+
+        // Effet hover sur les colonnes
+        const columnBtns = document.querySelectorAll('.column-btn');
+        columnBtns.forEach((btn, colIdx) => {
+            btn.addEventListener('mouseenter', () => {
+                // Highlight la colonne
+                const cells = document.querySelectorAll(`[data-col="${colIdx}"]`);
+                cells.forEach(cell => {
+                    if (!cell.querySelector('.token')) {
+                        cell.style.backgroundColor = '#e0f0ff';
+                    }
+                });
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                // Retirer le highlight
+                const cells = document.querySelectorAll(`[data-col="${colIdx}"]`);
+                cells.forEach(cell => {
+                    if (!cell.querySelector('.token')) {
+                        cell.style.backgroundColor = 'white';
+                    }
+                });
+            });
+        });
+
+        // Animation des scores au changement
+        const scoreValues = document.querySelectorAll('.score-value');
+        scoreValues.forEach(score => {
+            score.addEventListener('DOMSubtreeModified', function() {
+                this.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 300);
+            });
+        });
+    </script>
 </body>
 </html>
