@@ -18,14 +18,35 @@ type Board struct {
     GameOver bool
     Error  string
     History []Move
-
+    TotalMoves  int
+    WinningCells [][2]int
+    Player1Name string
+    Player2Name string
 }
 
 // Créer un plateau vide
 func NewBoard() *Board {
-	return &Board{Player: 1}
+	return &Board{
+        Player:      1,
+        Player1Name: "Joueur 1",
+        Player2Name: "Joueur 2",
+    }
 }
 
+func NewBoardWithNames(p1, p2 string) *Board {
+    return &Board{
+        Player:      1,
+        Player1Name: p1,
+        Player2Name: p2,
+    }
+}
+
+func (b *Board) GetCurrentPlayerName() string {
+    if b.Player == 1 {
+        return b.Player1Name
+    }
+    return b.Player2Name
+}
 
 func (b *Board) Move(col int) bool {
     if col < 0 || col >= Colonnes {
