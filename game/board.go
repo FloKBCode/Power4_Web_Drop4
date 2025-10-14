@@ -19,6 +19,7 @@ type Board struct {
     Error  string
     History []Move
     TotalMoves  int
+    WinningCells [][2]int
     Player1Name string
     Player2Name string
 }

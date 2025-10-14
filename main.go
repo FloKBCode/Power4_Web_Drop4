@@ -26,11 +26,12 @@ func main() {
     board = game.NewBoard()
     
     // Routes
-    http.HandleFunc("/", homePageHandler)        // Page accueil avec formulaire
-    http.HandleFunc("/start", startGameHandler)  // POST démarrage
-    http.HandleFunc("/game", gameHandler)        // Page jeu
-    http.HandleFunc("/play", playHandler)        // Jouer un coup
-    http.HandleFunc("/reset", resetHandler)      // Réinitialiser
+    http.HandleFunc("/", homePageHandler)
+    http.HandleFunc("/start", startGameHandler)
+    http.HandleFunc("/game", gameHandler)
+    http.HandleFunc("/play", playHandler)
+    http.HandleFunc("/reset", resetHandler)
+    http.HandleFunc("/reset-scores", resetScoresHandler)
     
     // Servir fichiers statiques
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -40,13 +41,11 @@ func main() {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-    // Si on a déjà une partie en cours, afficher directement le jeu
-    if board.Player1Name != "Joueur 1" || board.TotalMoves > 0 {
+    if board.Player1Name != "Rouge" || board.TotalMoves > 0 {
         http.Redirect(w, r, "/game", http.StatusSeeOther)
         return
     }
     
-    // Sinon afficher la page d'accueil
     tmpl.ExecuteTemplate(w, "home.html", nil)
 }
 
@@ -59,14 +58,6 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
     player1 := r.FormValue("player1")
     player2 := r.FormValue("player2")
     
-    // Validation
-    if player1 == "" {
-        player1 = "Joueur 1"
-    }
-    if player2 == "" {
-        player2 = "Joueur 2"
-    }
-    
     // Limiter longueur
     if len(player1) > 15 {
         player1 = player1[:15]
@@ -75,7 +66,7 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
         player2 = player2[:15]
     }
     
-    // Nouvelle partie avec pseudos
+    // Nouvelle partie avec pseudos (ou valeurs par défaut)
     board = game.NewBoardWithNames(player1, player2)
     scoreP1 = 0
     scoreP2 = 0
@@ -117,6 +108,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
     }
     
     board.Move(col)
+    board.TotalMoves++
     board.CheckWin()
     
     http.Redirect(w, r, "/game", http.StatusSeeOther)
@@ -135,6 +127,18 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
     p2 := board.Player2Name
     
     board = game.NewBoardWithNames(p1, p2)
+    http.Redirect(w, r, "/game", http.StatusSeeOther)
+}
+
+func resetScoresHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+        return
+    }
+    
+    scoreP1 = 0
+    scoreP2 = 0
+    
     http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 

@@ -1,5 +1,7 @@
 package game
 
+// Note: Ajoutez WinningCells [][2]int dans la structure Board de board.go
+
 func (b *Board) Reset() {
 	b.Grid = [Ligne][Colonnes]int{}
 	b.Player = 1
@@ -8,6 +10,7 @@ func (b *Board) Reset() {
     b.History = []Move{}
     b.TotalMoves = 0
     b.Error = ""
+    b.WinningCells = nil
 }
 
 func (b *Board) IsFull() bool {
@@ -52,6 +55,9 @@ func (b *Board) checkHorizontal() bool {
                b.Grid[row][col] == b.Grid[row][col+1] &&
                b.Grid[row][col] == b.Grid[row][col+2] &&
                b.Grid[row][col] == b.Grid[row][col+3] {
+                b.WinningCells = [][2]int{
+                    {row, col}, {row, col+1}, {row, col+2}, {row, col+3},
+                }
                 return true
             }
         }
@@ -66,6 +72,9 @@ func (b *Board) checkVertical() bool {
                b.Grid[row][col] == b.Grid[row+1][col] &&
                b.Grid[row][col] == b.Grid[row+2][col] &&
                b.Grid[row][col] == b.Grid[row+3][col] {
+                b.WinningCells = [][2]int{
+                    {row, col}, {row+1, col}, {row+2, col}, {row+3, col},
+                }
                 return true
             }
         }
@@ -80,6 +89,9 @@ func (b *Board) checkDiagonalUp() bool {
                b.Grid[row][col] == b.Grid[row-1][col+1] &&
                b.Grid[row][col] == b.Grid[row-2][col+2] &&
                b.Grid[row][col] == b.Grid[row-3][col+3] {
+                b.WinningCells = [][2]int{
+                    {row, col}, {row-1, col+1}, {row-2, col+2}, {row-3, col+3},
+                }
                 return true
             }
         }
@@ -94,6 +106,9 @@ func (b *Board) checkDiagonalDown() bool {
                b.Grid[row][col] == b.Grid[row+1][col+1] &&
                b.Grid[row][col] == b.Grid[row+2][col+2] &&
                b.Grid[row][col] == b.Grid[row+3][col+3] {
+                b.WinningCells = [][2]int{
+                    {row, col}, {row+1, col+1}, {row+2, col+2}, {row+3, col+3},
+                }
                 return true
             }
         }
@@ -108,4 +123,13 @@ func (b *Board) GetWinnerName() string {
         return b.Player2Name
     }
     return ""
+}
+
+func (b *Board) IsWinningCell(row, col int) bool {
+    for _, cell := range b.WinningCells {
+        if cell[0] == row && cell[1] == col {
+            return true
+        }
+    }
+    return false
 }
