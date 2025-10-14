@@ -326,7 +326,23 @@ h1 {
   text-align: center;
   letter-spacing: 0.5px;
 }
+ /* === HISTORIQUE DES COUPS === */
+ .history-panel {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 10px;
+  max-width: 300px;
+  color: white;
+}
 
+.history-item {
+  padding: 5px;
+  margin: 3px 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 5px;
+  font-size: 0.9em;
+}
 /* === STATISTIQUES === */
 .stats-container {
   display: flex;
@@ -480,6 +496,21 @@ h1 {
       {{end}}
     </div>
   </div>
+  <!-- Historique des coups -->
+   {{if .History}}
+   <div class="history-panel">
+    <h3>📜 Historique</h3>
+    <div class="history-list">
+      {{range $index, $move := .History}}
+        <div class="history-item">
+          #{{add $index 1}} - 
+          {{if eq $move.Player 1}}🔴{{else}}🟡{{end}}
+          Col {{add $move.Column 1}}
+        </div>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
   
   <!-- Masqué car on clique directement sur les cases -->
   <div class="controls" style="display: none;"></div>
