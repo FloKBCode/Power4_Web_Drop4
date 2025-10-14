@@ -47,9 +47,9 @@ power4-web/
 
 ## 👥 Auteurs
 
-Florence Kore-Belle \n
-Sarah Bouhadra
-Marly Dedjiho
+Florence Kore-Belle  
+Sarah Bouhadra  
+Marly Dedjiho   
 ## 📄 Licence
 
 Projet Power4 - B1 Ynov
