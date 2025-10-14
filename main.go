@@ -55,6 +55,14 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 	player1 := r.FormValue("player1")
 	player2 := r.FormValue("player2")
 
+	// Valeurs par défaut si vides
+	if player1 == "" {
+		player1 = "Rouge"
+	}
+	if player2 == "" {
+		player2 = "Jaune"
+	}
+
 	// Limiter longueur
 	if len(player1) > 15 {
 		player1 = player1[:15]
@@ -63,7 +71,7 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 		player2 = player2[:15]
 	}
 
-	// Nouvelle partie avec pseudos (ou valeurs par défaut)
+	// Nouvelle partie avec pseudos
 	board = game.NewBoardWithNames(player1, player2)
 	scoreP1 = 0
 	scoreP2 = 0
@@ -160,6 +168,12 @@ func init() {
 				return board.IsColumnFull(col)
 			}
 			return false
+		},
+		"len": func(slice []game.Move) int {
+			return len(slice)
+		},
+		"index": func(slice []game.Move, i int) game.Move {
+			return slice[i]
 		},
 	}
 	tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
