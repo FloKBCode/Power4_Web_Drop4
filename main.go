@@ -19,6 +19,7 @@ type GameData struct {
  *game.Board
  ScoreP1 int
  ScoreP2 int
+ ErrorMessage string
 }
 
 
@@ -64,11 +65,13 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    success := board.Move(col)
-    if !success {
-        // Colonne pleine
+    if board.IsColumnFull(col) {
+        // On pourrait stocker l'erreur mais on fait juste rien
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+        return
     }
     
+		board.Move(col)
     board.CheckWin()
     http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -94,6 +97,15 @@ func init() {
             }
             return result
         },
+				"add": func(a, b int) int {
+            return a + b
+        },
+				"IsColumnFull": func(col int) bool {
+        if board != nil {
+            return board.IsColumnFull(col)
+        }
+        return false
+    		},
     }
     tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
 }

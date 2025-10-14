@@ -42,7 +42,7 @@ func (b *Board) Move(col int) bool {
             Column: col,
             Row: ligne,
             })
-            
+
             // changer joueur
             if b.Player == 1 {
                 b.Player = 2
@@ -53,4 +53,11 @@ func (b *Board) Move(col int) bool {
         }
     }
     return false 
+}
+
+func (b *Board) IsColumnFull(col int) bool {
+    if col < 0 || col >= Colonnes {
+        return true
+    }
+    return b.Grid[0][col] != 0
 }

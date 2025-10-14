@@ -59,7 +59,10 @@
             {{range $i := Seq 7}}
                 <form action="/play" method="POST" style="display:inline;">
                     <input type="hidden" name="column" value="{{$i}}">
-                    <button type="submit" class="column-btn">↓</button>
+                    <button type="submit" class="column-btn" 
+                            {{if $.IsColumnFull $i}}disabled{{end}}>
+                        ↓
+                    </button>
                 </form>
             {{end}}
         </div>
