@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puissance 4 - Avec Scores Néon</title>
+  <style>
 /* === RESET & BASE === */
 * {
   margin: 0;
@@ -13,7 +20,8 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow-x: hidden;
+  padding: 20px 10px;
 }
 
 /* === TITRE === */
@@ -22,6 +30,90 @@ h1 {
   font-size: 3em;
   margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* === SCOREBOARD - DARK NEON THEME === */
+.scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  padding: 25px 40px;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  margin-bottom: 25px;
+}
+
+.scoreboard.neon {
+  background: radial-gradient(circle at top, rgba(30, 30, 60, 0.6), rgba(10, 10, 20, 0.95));
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.3),
+              inset 0 0 10px rgba(0, 255, 255, 0.2);
+}
+
+.scoreboard.neon:hover {
+  box-shadow: 0 0 40px rgba(0, 255, 255, 0.5),
+              inset 0 0 15px rgba(0, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Player labels in neon mode */
+.player-label {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1em;
+  transition: all 0.3s ease;
+}
+
+.scoreboard.neon .player-label.red {
+  background: linear-gradient(135deg, #ff004c, #ff3366);
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 0, 76, 0.8);
+  box-shadow: 0 0 20px rgba(255, 0, 76, 0.5);
+}
+
+.scoreboard.neon .player-label.yellow {
+  background: linear-gradient(135deg, #ffea00, #ffc400);
+  color: #111;
+  text-shadow: 0 0 8px rgba(255, 230, 0, 0.8);
+  box-shadow: 0 0 20px rgba(255, 230, 0, 0.5);
+}
+
+/* Neon glowing score */
+.score-value {
+  font-size: 2.5em;
+  font-weight: bold;
+  min-width: 70px;
+  text-align: center;
+}
+
+.scoreboard.neon .score-value {
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff, 0 0 25px #00ffff, 0 0 50px #00ffff;
+  transition: text-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.scoreboard.neon .score-value:hover {
+  transform: scale(1.1);
+  text-shadow: 0 0 15px #00ffff, 0 0 35px #00ffff, 0 0 70px #00ffff;
+}
+
+/* Separator glow */
+.score-separator {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.scoreboard.neon .score-separator {
+  color: #fff;
+  text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
+  animation: neonPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes neonPulse {
+  0%, 100% { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; opacity: 1; }
+  50% { text-shadow: 0 0 25px #00ffff, 0 0 50px #00ffff; opacity: 0.8; }
 }
 
 /* === INFO JOUEUR === */
@@ -56,11 +148,7 @@ h1 {
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  transition: background 0.4s ease;
 }
-
-.grid.active-red { background: linear-gradient(135deg, #ff6b6b 0%, #ff0000 100%); }
-.grid.active-yellow { background: linear-gradient(135deg, #ffe66d 0%, #ffff00 100%); }
 
 /* === CASES INDIVIDUELLES === */
 .cell {
@@ -234,6 +322,9 @@ h1 {
 @media (max-width: 768px) {
   body { padding: 10px; }
   h1 { font-size: 2em; }
+  .scoreboard { gap: 15px; padding: 20px 30px; }
+  .score-value { font-size: 2em; min-width: 50px; }
+  .player-label { font-size: 0.9em; padding: 6px 15px; }
   .player-info { font-size: 1.2em; padding: 10px 20px; }
   .grid { grid-template-columns: repeat(7, 60px); grid-template-rows: repeat(6, 60px); gap: 5px; padding: 10px; }
   .cell { width: 60px; height: 60px; }
@@ -243,9 +334,227 @@ h1 {
 
 @media (max-width: 480px) {
   h1 { font-size: 1.5em; margin-bottom: 10px; }
+  .scoreboard { gap: 10px; padding: 15px 20px; flex-wrap: wrap; }
+  .score-value { font-size: 1.5em; }
+  .score-separator { font-size: 1.5em; }
+  .player-label { font-size: 0.8em; }
   .grid { grid-template-columns: repeat(7, 45px); grid-template-rows: repeat(6, 45px); gap: 4px; }
   .cell { width: 45px; height: 45px; border: 2px solid #1e3a70; }
   .token { width: 38px; height: 38px; }
   .column-btn { width: 45px; height: 35px; font-size: 0.9em; }
   .reset-btn { padding: 10px 25px; font-size: 1.1em; }
 }
+  </style>
+</head>
+<body>
+  <h1>🎮 Puissance 4 🎮</h1>
+  
+  <!-- TABLEAU DE SCORES NÉON -->
+  <div class="scoreboard neon">
+    <div class="player-label red">Rouge</div>
+    <div class="score-value" id="scoreRed">0</div>
+    <div class="score-separator">-</div>
+    <div class="score-value" id="scoreYellow">0</div>
+    <div class="player-label yellow">Jaune</div>
+  </div>
+
+  <div id="player-info" class="player-info">Au tour du joueur Rouge</div>
+  
+  <div id="error-message" class="error-message" style="display: none;"></div>
+  
+  <div id="grid" class="grid"></div>
+  
+  <div class="controls" id="controls"></div>
+  
+  <button class="reset-btn" onclick="resetGame()">🔄 Nouvelle Partie</button>
+
+  <script>
+    const ROWS = 6;
+    const COLS = 7;
+    let board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+    let currentPlayer = 'red';
+    let gameActive = true;
+    let scoreRed = 0;
+    let scoreYellow = 0;
+
+    const grid = document.getElementById('grid');
+    const controls = document.getElementById('controls');
+    const playerInfo = document.getElementById('player-info');
+    const errorMessage = document.getElementById('error-message');
+
+    // Initialisation
+    function initGame() {
+      grid.innerHTML = '';
+      controls.innerHTML = '';
+      
+      // Créer la grille
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          grid.appendChild(cell);
+        }
+      }
+      
+      // Créer les boutons de colonnes
+      for (let col = 0; col < COLS; col++) {
+        const btn = document.createElement('button');
+        btn.className = 'column-btn';
+        btn.textContent = col + 1;
+        btn.onclick = () => dropToken(col);
+        controls.appendChild(btn);
+      }
+      
+      updatePlayerInfo();
+    }
+
+    function dropToken(col) {
+      if (!gameActive) return;
+      
+      // Trouver la ligne la plus basse disponible
+      let row = -1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (!board[r][col]) {
+          row = r;
+          break;
+        }
+      }
+      
+      if (row === -1) {
+        showError('Cette colonne est pleine !');
+        return;
+      }
+      
+      // Placer le jeton
+      board[row][col] = currentPlayer;
+      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+      const token = document.createElement('div');
+      token.className = `token ${currentPlayer}`;
+      cell.appendChild(token);
+      
+      // Vérifier victoire
+      if (checkWin(row, col)) {
+        gameActive = false;
+        playerInfo.className = 'player-info winner';
+        playerInfo.textContent = `🏆 ${currentPlayer === 'red' ? 'Rouge' : 'Jaune'} a gagné ! 🏆`;
+        
+        // Mettre à jour le score
+        if (currentPlayer === 'red') {
+          scoreRed++;
+          document.getElementById('scoreRed').textContent = scoreRed;
+        } else {
+          scoreYellow++;
+          document.getElementById('scoreYellow').textContent = scoreYellow;
+        }
+        
+        highlightWinningTokens(row, col);
+        return;
+      }
+      
+      // Vérifier match nul
+      if (board.every(row => row.every(cell => cell !== null))) {
+        gameActive = false;
+        playerInfo.textContent = '⚖️ Match nul !';
+        return;
+      }
+      
+      // Changer de joueur
+      currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+      updatePlayerInfo();
+    }
+
+    function checkWin(row, col) {
+      const directions = [
+        [[0, 1], [0, -1]],   // Horizontal
+        [[1, 0], [-1, 0]],   // Vertical
+        [[1, 1], [-1, -1]],  // Diagonale \
+        [[1, -1], [-1, 1]]   // Diagonale /
+      ];
+      
+      for (let [dir1, dir2] of directions) {
+        let count = 1;
+        count += countDirection(row, col, dir1[0], dir1[1]);
+        count += countDirection(row, col, dir2[0], dir2[1]);
+        if (count >= 4) return true;
+      }
+      return false;
+    }
+
+    function countDirection(row, col, dRow, dCol) {
+      let count = 0;
+      let r = row + dRow;
+      let c = col + dCol;
+      
+      while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === currentPlayer) {
+        count++;
+        r += dRow;
+        c += dCol;
+      }
+      return count;
+    }
+
+    function highlightWinningTokens(row, col) {
+      const directions = [
+        [[0, 1], [0, -1]],
+        [[1, 0], [-1, 0]],
+        [[1, 1], [-1, -1]],
+        [[1, -1], [-1, 1]]
+      ];
+      
+      for (let [dir1, dir2] of directions) {
+        let positions = [[row, col]];
+        positions.push(...getPositions(row, col, dir1[0], dir1[1]));
+        positions.push(...getPositions(row, col, dir2[0], dir2[1]));
+        
+        if (positions.length >= 4) {
+          positions.forEach(([r, c]) => {
+            const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+            const token = cell.querySelector('.token');
+            if (token) token.classList.add('active');
+          });
+          return;
+        }
+      }
+    }
+
+    function getPositions(row, col, dRow, dCol) {
+      let positions = [];
+      let r = row + dRow;
+      let c = col + dCol;
+      
+      while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === currentPlayer) {
+        positions.push([r, c]);
+        r += dRow;
+        c += dCol;
+      }
+      return positions;
+    }
+
+    function updatePlayerInfo() {
+      const playerName = currentPlayer === 'red' ? 'Rouge' : 'Jaune';
+      playerInfo.textContent = `Au tour du joueur ${playerName}`;
+      playerInfo.className = 'player-info';
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+      setTimeout(() => {
+        errorMessage.style.display = 'none';
+      }, 2000);
+    }
+
+    function resetGame() {
+      board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+      currentPlayer = 'red';
+      gameActive = true;
+      initGame();
+    }
+
+    // Démarrer le jeu
+    initGame();
+  </script>
+</body>
+</html>
