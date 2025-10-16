@@ -127,6 +127,64 @@
             font-weight: 500;
         }
 
+        .continue-box {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .continue-box h2 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .continue-box p {
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .continue-btn, .new-game-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .continue-btn {
+            background: white;
+            color: #28a745;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        .new-game-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .new-game-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 30px 20px;
@@ -145,9 +203,31 @@
 <body>
     <div class="container">
         <h1>🎮 Drop 4 🎮</h1>
-        <p class="subtitle">Commencez une nouvelle partie</p>
+        {{if .HasSave}}
+        <div class="continue-box">
+            <h2>🎮 Partie en cours détectée !</h2>
+            <p>Vous avez une partie sauvegardée</p>
+            <div class="button-group">
+                <a href="/continue" class="continue-btn">
+                    ▶️ Continuer la partie
+                </a>
+                <button onclick="confirmNewGame()" class="new-game-btn">
+                    🆕 Nouvelle partie
+                </button>
+            </div>
+        </div>
+
+        <script>
+        function confirmNewGame() {
+            if (confirm('Voulez-vous vraiment abandonner la partie en cours ?')) {
+                document.getElementById('newGameForm').style.display = 'block';
+                document.querySelector('.continue-box').style.display = 'none';
+            }
+        }
+        </script>
+        {{end}}
         
-        <form action="/start" method="POST">
+        <form id="newGameForm" action="/start" method="POST" {{if .HasSave}}style="display:none;"{{end}}>
             <div class="form-group">
                 <label for="player1">
                     <span class="player-icon red-icon">🔴</span>

@@ -1,5 +1,7 @@
 package game
 
+import "encoding/json"
+
 const (
 	Ligne    = 6
 	Colonnes = 7
@@ -81,4 +83,15 @@ func (b *Board) IsColumnFull(col int) bool {
         return true
     }
     return b.Grid[0][col] != 0
+}
+
+func (b *Board) SaveState() ([]byte, error) {
+    return json.Marshal(b)
+}
+
+// LoadState charge un état depuis JSON
+func LoadState(data []byte) (*Board, error) {
+    var b Board
+    err := json.Unmarshal(data, &b)
+    return &b, err
 }

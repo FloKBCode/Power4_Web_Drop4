@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"power4/game"
 	"strconv"
+    "encoding/json"
+    "io/ioutil"
+    "os"
 )
 
 var (
@@ -30,6 +33,7 @@ func main() {
 	// Routes
 	http.HandleFunc("/", homePageHandler)
 	http.HandleFunc("/start", startGameHandler)
+    http.HandleFunc("/continue", continueHandler)
 	http.HandleFunc("/game", gameHandler)
 	http.HandleFunc("/play", playHandler)
 	http.HandleFunc("/reset", resetHandler)
@@ -43,7 +47,12 @@ func main() {
 }
 
 func homePageHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl.ExecuteTemplate(w, "home.html", nil)
+	data := struct {
+        HasSave bool
+    }{
+        HasSave: hasSave(),
+    }
+    tmpl.ExecuteTemplate(w, "home.html", data)
 }
 
 func startGameHandler(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +86,14 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 	scoreP2 = 0
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
+}
+
+func continueHandler(w http.ResponseWriter, r *http.Request) {
+    if loadGame() {
+        http.Redirect(w, r, "/game", http.StatusSeeOther)
+    } else {
+        http.Redirect(w, r, "/", http.StatusSeeOther)
+    }
 }
 
 func gameHandler(w http.ResponseWriter, r *http.Request) {
@@ -115,24 +132,28 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	board.Move(col)
 	board.TotalMoves++
 	board.CheckWin()
-
+    saveGame()
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
 	if board.GameOver {
-		if board.Winner == 1 {
+		switch board.Winner {
+        case 1:
 			scoreP1++
-		} else if board.Winner == 2 {
+		case 2:
 			scoreP2++
 		}
 		gamesPlayed++
+        deleteSave()
 	}
 
 	p1 := board.Player1Name
 	p2 := board.Player2Name
 
-	board = game.NewBoardWithNames(p1, p2)
+
+	saveGame()
+    board = game.NewBoardWithNames(p1, p2)
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
@@ -177,4 +198,71 @@ func init() {
 		},
 	}
 	tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
+}
+
+const saveFile = "power4_save.json"
+
+
+
+// Fonction de sauvegarde
+func saveGame() {
+    type SaveData struct {
+        Board   *game.Board
+        ScoreP1 int
+        ScoreP2 int
+    }
+    
+    data := SaveData{
+        Board:   board,
+        ScoreP1: scoreP1,
+        ScoreP2: scoreP2,
+    }
+    
+    jsonData, err := json.MarshalIndent(data, "", "  ")
+    if err != nil {
+        fmt.Println("Erreur sauvegarde:", err)
+        return
+    }
+    
+    err = ioutil.WriteFile(saveFile, jsonData, 0644)
+    if err != nil {
+        fmt.Println("Erreur écriture fichier:", err)
+    }
+}
+
+// Charger la sauvegarde
+func loadGame() bool {
+    data, err := ioutil.ReadFile(saveFile)
+    if err != nil {
+        return false // Pas de sauvegarde
+    }
+    
+    type SaveData struct {
+        Board   *game.Board
+        ScoreP1 int
+        ScoreP2 int
+    }
+    
+    var saveData SaveData
+    err = json.Unmarshal(data, &saveData)
+    if err != nil {
+        return false
+    }
+    
+    board = saveData.Board
+    scoreP1 = saveData.ScoreP1
+    scoreP2 = saveData.ScoreP2
+    
+    return true
+}
+
+// Vérifier si sauvegarde existe
+func hasSave() bool {
+    _, err := os.Stat(saveFile)
+    return err == nil
+}
+
+// Supprimer la sauvegarde
+func deleteSave() {
+    os.Remove(saveFile)
 }
