@@ -3,265 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drop4 - Accueil</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-
-        h1 {
-            color: #667eea;
-            font-size: 3em;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 1.2em;
-            margin-bottom: 40px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            color: #333;
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        input[type="text"]:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .player-icon {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
-        .red-icon {
-            color: #ff0000;
-        }
-
-        .yellow-icon {
-            color: #ffff00;
-            text-shadow: 0 0 2px #000;
-        }
-
-        .start-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.4em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            letter-spacing: 1px;
-        }
-
-        .start-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .start-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .info-text {
-            color: #888;
-            font-size: 0.9em;
-            margin-top: 20px;
-        }
-
-        .default-notice {
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px dashed #667eea;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            color: #667eea;
-            font-size: 0.95em;
-            font-weight: 500;
-        }
-
-        .continue-box {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            color: white;
-            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
-        }
-
-        .continue-box h2 {
-            color: white;
-            margin-bottom: 10px;
-        }
-
-        .continue-box p {
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-        }
-
-        .continue-btn, .new-game-btn {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .continue-btn {
-            background: white;
-            color: #28a745;
-        }
-
-        .continue-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
-        }
-
-        .new-game-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid white;
-        }
-
-        .new-game-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            .subtitle {
-                font-size: 1em;
-            }
-        }
-    </style>
+    <title>Power 4 - Accueil</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+
+    <!-- Tutoriel (modale cachée) -->
+    <div id="tutorialModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeTutorial()">&times;</span>
+            <h2>📚 Comment jouer ?</h2>
+
+            <div class="tutorial-step">
+                <h3>🎯 Objectif</h3>
+                <p>Alignez <strong>4 jetons</strong> de votre couleur horizontalement, verticalement ou en diagonale.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h3>🎮 Contrôles</h3>
+                <p><strong>Cliquez sur une case</strong> pour déposer votre jeton dans cette colonne.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h3>⚡ Règles</h3>
+                <ul>
+                    <li>Tour par tour</li>
+                    <li>Colonne pleine = impossible de jouer</li>
+                    <li>Plateau plein = match nul</li>
+                </ul>
+            </div>
+
+            <div class="tutorial-step">
+                <h3>💡 Astuces</h3>
+                <ul>
+                    <li>Contrôlez le <strong>centre</strong></li>
+                    <li>Créez des <strong>menaces doubles</strong></li>
+                    <li>Bloquez votre adversaire</li>
+                </ul>
+            </div>
+
+            <button onclick="closeTutorial()" class="tutorial-btn-small">✅ J'ai compris !</button>
+        </div>
+    </div>
+
+    <!-- Conteneur principal -->
     <div class="container">
-        <h1>🎮 Drop 4 🎮</h1>
+        <h1>🎮 Power 4 Web 🎮</h1>
+        <p class="subtitle">Le célèbre jeu revisité sur le web</p>
+
+        <!-- Bloc reprise de partie -->
         {{if .HasSave}}
         <div class="continue-box">
             <h2>🎮 Partie en cours détectée !</h2>
-            <p>Vous avez une partie sauvegardée</p>
+            <p>Vous avez une partie sauvegardée.</p>
             <div class="button-group">
-                <a href="/continue" class="continue-btn">
-                    ▶️ Continuer la partie
-                </a>
-                <button onclick="confirmNewGame()" class="new-game-btn">
-                    🆕 Nouvelle partie
-                </button>
+                <a href="/continue" class="continue-btn">▶️ Continuer</a>
+                <button onclick="confirmNewGame()" class="new-game-btn">🆕 Nouvelle partie</button>
             </div>
         </div>
+        {{end}}
 
-        <script>
+        <!-- Formulaire de nouvelle partie -->
+        <form id="newGameForm" action="/start" method="POST" {{if .HasSave}}style="display:none;"{{end}}>
+            
+            <!-- Mode de jeu -->
+            <div class="mode-selector">
+                <h3>Mode de jeu</h3>
+                <div class="mode-buttons">
+                    <label class="mode-option active" onclick="selectMode('pvp')">
+                        <input type="radio" name="game_mode" value="pvp" checked>
+                        <div class="mode-card">
+                            <div class="mode-icon">👥</div>
+                            <div class="mode-title">2 Joueurs</div>
+                            <div class="mode-desc">Affrontez un ami</div>
+                        </div>
+                    </label>
+
+                    <label class="mode-option" onclick="selectMode('ai')">
+                        <input type="radio" name="game_mode" value="ai">
+                        <div class="mode-card">
+                            <div class="mode-icon">🤖</div>
+                            <div class="mode-title">Contre IA</div>
+                            <div class="mode-desc">Défiez l'ordinateur</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Difficulté IA -->
+            <div id="difficultySelect" class="difficulty-selector" style="display:none;">
+                <h3>Difficulté de l'IA</h3>
+                <select name="difficulty" class="difficulty-dropdown">
+                    <option value="facile">😊 Facile</option>
+                    <option value="moyen" selected>🤔 Moyen</option>
+                    <option value="difficile">😈 Difficile</option>
+                </select>
+            </div>
+
+            <input type="hidden" name="ai_mode" id="aiModeInput" value="">
+
+            <!-- Pseudos -->
+            <div class="form-group">
+                <label for="player1">
+                    <span class="player-icon red-icon">🔴</span>Joueur 1 (Rouge)
+                </label>
+                <input type="text" id="player1" name="player1" placeholder="Votre pseudo" maxlength="15">
+            </div>
+
+            <div class="form-group">
+                <label for="player2">
+                    <span class="player-icon yellow-icon">🟡</span>
+                    <span id="player2Label">Joueur 2 (Jaune)</span>
+                </label>
+                <input type="text" id="player2" name="player2" placeholder="Pseudo adversaire" maxlength="15">
+            </div>
+
+            <!-- Boutons -->
+            <button type="submit" class="start-btn">🚀 Lancer la partie</button>
+            <button type="button" class="tutorial-btn-small" onclick="showTutorial()">📚 Voir le tutoriel</button>
+        </form>
+
+        <!-- Informations -->
+        <div class="default-notice">
+            💡 Vous pouvez laisser les pseudos vides pour utiliser les noms par défaut
+        </div>
+        <p class="info-text">Les pseudos sont limités à 15 caractères</p>
+    </div>
+
+    <script>
+        // Tutoriel au premier lancement
+        window.onload = function() {
+            const hasSeenTutorial = sessionStorage.getItem('hasSeenTutorial');
+            const hasSave = "{{.HasSave}}" === "true";
+            if (!hasSeenTutorial && !hasSave) {
+                showTutorial();
+                sessionStorage.setItem('hasSeenTutorial', 'true');
+            }
+        };
+
+        function showTutorial() {
+            document.getElementById('tutorialModal').style.display = 'flex';
+        }
+
+        function closeTutorial() {
+            document.getElementById('tutorialModal').style.display = 'none';
+        }
+
+        function selectMode(mode) {
+            document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            const diff = document.getElementById('difficultySelect');
+            const player2 = document.getElementById('player2');
+            const label = document.getElementById('player2Label');
+            const aiInput = document.getElementById('aiModeInput');
+            
+            if (mode === 'ai') {
+                diff.style.display = 'block';
+                label.textContent = 'Ordinateur (Jaune)';
+                player2.value = 'Ordinateur';
+                aiInput.value = 'on';
+            } else {
+                diff.style.display = 'none';
+                label.textContent = 'Joueur 2 (Jaune)';
+                player2.value = '';
+                aiInput.value = '';
+            }
+        }
+
         function confirmNewGame() {
             if (confirm('Voulez-vous vraiment abandonner la partie en cours ?')) {
                 document.getElementById('newGameForm').style.display = 'block';
                 document.querySelector('.continue-box').style.display = 'none';
             }
         }
-        </script>
-        {{end}}
-        
-        <form id="newGameForm" action="/start" method="POST" {{if .HasSave}}style="display:none;"{{end}}>
-            <div class="form-group">
-                <label for="player1">
-                    <span class="player-icon red-icon">🔴</span>
-                    Joueur 1 (Rouge)
-                </label>
-                <input type="text" 
-                       id="player1" 
-                       name="player1" 
-                       placeholder="Laissez vide pour 'Rouge'" 
-                       maxlength="15">
-            </div>
 
-            <div class="form-group">
-                <label for="player2">
-                    <span class="player-icon yellow-icon">🟡</span>
-                    Joueur 2 (Jaune)
-                </label>
-                <input type="text" 
-                       id="player2" 
-                       name="player2" 
-                       placeholder="Laissez vide pour 'Jaune'" 
-                       maxlength="15">
-            </div>
-
-            <button type="submit" class="start-btn">
-                ▶️ Commencer la partie
-            </button>
-        </form>
-
-        <div class="default-notice">
-            💡 Si vous ne saisissez pas de pseudo, les noms par défaut seront "Rouge" et "Jaune"
-        </div>
-
-        <p class="info-text">Les pseudos sont limités à 15 caractères</p>
-    </div>
+        window.onclick = function(event) {
+            const modal = document.getElementById('tutorialModal');
+            if (event.target === modal) closeTutorial();
+        }
+    </script>
 </body>
 </html>
