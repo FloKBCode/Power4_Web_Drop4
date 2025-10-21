@@ -5,77 +5,427 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Power 4 - Accueil</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* === STYLES PAGE D'ACCUEIL === */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .container h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        /* === BLOC REPRISE PARTIE === */
+        .continue-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .continue-box h2 {
+            margin-bottom: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            font-size: 1.5em;
+        }
+
+        .continue-box p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .continue-btn, .new-game-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .continue-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .continue-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .new-game-btn {
+            background: #fff;
+            color: #667eea;
+        }
+
+        .new-game-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        /* === FORMULAIRE === */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .player-icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* === MODE DE JEU === */
+        .mode-selector {
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .mode-selector h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+
+        .mode-option {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .mode-option input[type="radio"] {
+            display: none;
+        }
+
+        .mode-card {
+            padding: 20px;
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            background: white;
+            height: 100%;
+        }
+
+        .mode-option:hover .mode-card {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .mode-option.active .mode-card {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .mode-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .mode-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .mode-desc {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* === DIFFICULTÉ IA === */
+        .difficulty-selector {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .difficulty-selector h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .difficulty-dropdown {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .difficulty-dropdown:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* === BOUTONS === */
+        .start-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .tutorial-btn-small {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .tutorial-btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        /* === INFOS === */
+        .default-notice {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.95em;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-text {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* === ANIMATIONS === */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .container h1 {
+                font-size: 2em;
+            }
+
+            .mode-buttons {
+                flex-direction: column;
+            }
+
+            .mode-icon {
+                font-size: 2.5em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .continue-btn, .new-game-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .container h1 {
+                font-size: 1.8em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .mode-card {
+                padding: 15px;
+            }
+
+            .mode-title {
+                font-size: 1.1em;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Tutoriel (modale cachée) -->
+    <!-- === MODAL TUTORIEL === -->
     <div id="tutorialModal" class="modal" style="display: none;">
         <div class="modal-content">
             <span class="close-btn" onclick="closeTutorial()">&times;</span>
-            <h2>📚 Comment jouer ?</h2>
+            <h2 style="color: #667eea; margin-bottom: 20px;">📚 Comment jouer au Power 4 ?</h2>
 
             <div class="tutorial-step">
-                <h3>🎯 Objectif</h3>
-                <p>Alignez <strong>4 jetons</strong> de votre couleur horizontalement, verticalement ou en diagonale.</p>
-            </div>
-
-            <div class="tutorial-step">
-                <h3>🎮 Contrôles</h3>
-                <p><strong>Cliquez sur une case</strong> pour déposer votre jeton dans cette colonne.</p>
-            </div>
-
-            <div class="tutorial-step">
-                <h3>⚡ Règles</h3>
+                <h3>🎯 Objectif du jeu</h3>
+                <p>Soyez le premier à aligner <strong>4 jetons</strong> de votre couleur :</p>
                 <ul>
-                    <li>Tour par tour</li>
-                    <li>Colonne pleine = impossible de jouer</li>
-                    <li>Plateau plein = match nul</li>
+                    <li>➡️ Horizontalement</li>
+                    <li>⬇️ Verticalement</li>
+                    <li>↘️ En diagonale</li>
                 </ul>
             </div>
 
             <div class="tutorial-step">
-                <h3>💡 Astuces</h3>
+                <h3>🎮 Comment jouer</h3>
+                <p><strong>Cliquez sur une case</strong> de la colonne où vous voulez déposer votre jeton.</p>
+                <p>Le jeton tombera automatiquement à la position la plus basse disponible.</p>
+            </div>
+
+            <div class="tutorial-step">
+                <h3>⚡ Règles importantes</h3>
                 <ul>
-                    <li>Contrôlez le <strong>centre</strong></li>
-                    <li>Créez des <strong>menaces doubles</strong></li>
-                    <li>Bloquez votre adversaire</li>
+                    <li>🔴 Le joueur Rouge commence toujours</li>
+                    <li>🔄 Jouez chacun votre tour</li>
+                    <li>🚫 Une colonne pleine ne peut plus recevoir de jetons</li>
+                    <li>⚖️ Si le plateau est plein sans gagnant : match nul</li>
                 </ul>
             </div>
 
-            <button onclick="closeTutorial()" class="tutorial-btn-small">✅ J'ai compris !</button>
+            <div class="tutorial-step">
+                <h3>💡 Astuces stratégiques</h3>
+                <ul>
+                    <li>🎯 Contrôlez le <strong>centre</strong> du plateau</li>
+                    <li>⚔️ Créez des <strong>menaces doubles</strong> (2 façons de gagner en même temps)</li>
+                    <li>🛡️ Bloquez votre adversaire avant qu'il n'aligne 4 jetons</li>
+                    <li>👀 Anticipez les coups à l'avance</li>
+                </ul>
+            </div>
+
+            <button onclick="closeTutorial()" class="tutorial-btn">✅ J'ai compris ! Commencer à jouer</button>
         </div>
     </div>
 
-    <!-- Conteneur principal -->
+    <!-- === CONTENEUR PRINCIPAL === -->
     <div class="container">
         <h1>🎮 Power 4 Web 🎮</h1>
-        <p class="subtitle">Le célèbre jeu revisité sur le web</p>
+        <p class="subtitle">Le célèbre jeu de stratégie revisité sur le web</p>
 
-        <!-- Bloc reprise de partie -->
+        <!-- === BLOC REPRISE DE PARTIE === -->
         {{if .HasSave}}
-        <div class="continue-box">
+        <div class="continue-box" id="continueBox">
             <h2>🎮 Partie en cours détectée !</h2>
-            <p>Vous avez une partie sauvegardée.</p>
+            <p>Vous avez une partie sauvegardée. Voulez-vous la continuer ?</p>
             <div class="button-group">
-                <a href="/continue" class="continue-btn">▶️ Continuer</a>
+                <a href="/continue" class="continue-btn">▶️ Continuer la partie</a>
                 <button onclick="confirmNewGame()" class="new-game-btn">🆕 Nouvelle partie</button>
             </div>
         </div>
         {{end}}
 
-        <!-- Formulaire de nouvelle partie -->
+        <!-- === FORMULAIRE NOUVELLE PARTIE === -->
         <form id="newGameForm" action="/start" method="POST" {{if .HasSave}}style="display:none;"{{end}}>
             
-            <!-- Mode de jeu -->
+            <!-- === SÉLECTION MODE DE JEU === -->
             <div class="mode-selector">
-                <h3>Mode de jeu</h3>
+                <h3>🕹️ Mode de jeu</h3>
                 <div class="mode-buttons">
                     <label class="mode-option active" onclick="selectMode('pvp')">
                         <input type="radio" name="game_mode" value="pvp" checked>
                         <div class="mode-card">
                             <div class="mode-icon">👥</div>
                             <div class="mode-title">2 Joueurs</div>
-                            <div class="mode-desc">Affrontez un ami</div>
+                            <div class="mode-desc">Affrontez un ami en local</div>
                         </div>
                     </label>
 
@@ -90,98 +440,126 @@
                 </div>
             </div>
 
-            <!-- Difficulté IA -->
+            <!-- === SÉLECTION DIFFICULTÉ IA === -->
             <div id="difficultySelect" class="difficulty-selector" style="display:none;">
-                <h3>Difficulté de l'IA</h3>
+                <h3>🎚️ Difficulté de l'IA</h3>
                 <select name="difficulty" class="difficulty-dropdown">
-                    <option value="facile">😊 Facile</option>
-                    <option value="moyen" selected>🤔 Moyen</option>
-                    <option value="difficile">😈 Difficile</option>
+                    <option value="facile">😊 Facile - L'IA joue au hasard</option>
+                    <option value="moyen" selected>🤔 Moyen - L'IA bloque et attaque</option>
+                    <option value="difficile">😈 Difficile - L'IA joue stratégiquement</option>
                 </select>
             </div>
 
             <input type="hidden" name="ai_mode" id="aiModeInput" value="">
 
-            <!-- Pseudos -->
+            <!-- === PSEUDOS DES JOUEURS === -->
             <div class="form-group">
                 <label for="player1">
-                    <span class="player-icon red-icon">🔴</span>Joueur 1 (Rouge)
+                    <span class="player-icon">🔴</span>Joueur 1 (Rouge)
                 </label>
-                <input type="text" id="player1" name="player1" placeholder="Votre pseudo" maxlength="15">
+                <input type="text" id="player1" name="player1" placeholder="Entrez votre pseudo (optionnel)" maxlength="15">
             </div>
 
             <div class="form-group">
                 <label for="player2">
-                    <span class="player-icon yellow-icon">🟡</span>
+                    <span class="player-icon">🟡</span>
                     <span id="player2Label">Joueur 2 (Jaune)</span>
                 </label>
-                <input type="text" id="player2" name="player2" placeholder="Pseudo adversaire" maxlength="15">
+                <input type="text" id="player2" name="player2" placeholder="Entrez le pseudo de l'adversaire (optionnel)" maxlength="15">
             </div>
 
-            <!-- Boutons -->
+            <!-- === BOUTONS D'ACTION === -->
             <button type="submit" class="start-btn">🚀 Lancer la partie</button>
             <button type="button" class="tutorial-btn-small" onclick="showTutorial()">📚 Voir le tutoriel</button>
         </form>
 
-        <!-- Informations -->
+        <!-- === INFORMATIONS === -->
         <div class="default-notice">
-            💡 Vous pouvez laisser les pseudos vides pour utiliser les noms par défaut
+            💡 <strong>Astuce :</strong> Vous pouvez laisser les pseudos vides pour utiliser les noms par défaut (Rouge et Jaune)
         </div>
-        <p class="info-text">Les pseudos sont limités à 15 caractères</p>
+        <p class="info-text">📝 Les pseudos sont limités à 15 caractères maximum</p>
     </div>
 
+    <!-- === JAVASCRIPT === -->
     <script>
-        // Tutoriel au premier lancement
+        // Afficher le tutoriel au premier lancement
         window.onload = function() {
             const hasSeenTutorial = sessionStorage.getItem('hasSeenTutorial');
             const hasSave = "{{.HasSave}}" === "true";
+            
+            // Afficher tutoriel uniquement si première visite et pas de sauvegarde
             if (!hasSeenTutorial && !hasSave) {
                 showTutorial();
                 sessionStorage.setItem('hasSeenTutorial', 'true');
             }
         };
 
+        // Afficher le modal tutoriel
         function showTutorial() {
             document.getElementById('tutorialModal').style.display = 'flex';
         }
 
+        // Fermer le modal tutoriel
         function closeTutorial() {
             document.getElementById('tutorialModal').style.display = 'none';
         }
 
+        // Sélectionner le mode de jeu
         function selectMode(mode) {
-            document.querySelectorAll('.mode-option').forEach(opt => opt.classList.remove('active'));
+            // Retirer la classe active de tous les modes
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            
+            // Ajouter la classe active au mode sélectionné
             event.currentTarget.classList.add('active');
 
-            const diff = document.getElementById('difficultySelect');
-            const player2 = document.getElementById('player2');
-            const label = document.getElementById('player2Label');
-            const aiInput = document.getElementById('aiModeInput');
+            const difficultySelect = document.getElementById('difficultySelect');
+            const player2Input = document.getElementById('player2');
+            const player2Label = document.getElementById('player2Label');
+            const aiModeInput = document.getElementById('aiModeInput');
             
             if (mode === 'ai') {
-                diff.style.display = 'block';
-                label.textContent = 'Ordinateur (Jaune)';
-                player2.value = 'Ordinateur';
-                aiInput.value = 'on';
+                // Mode IA : afficher sélection difficulté
+                difficultySelect.style.display = 'block';
+                player2Label.textContent = 'Ordinateur (Jaune)';
+                player2Input.value = 'Ordinateur';
+                player2Input.disabled = true;
+                player2Input.style.backgroundColor = '#f0f0f0';
+                aiModeInput.value = 'on';
             } else {
-                diff.style.display = 'none';
-                label.textContent = 'Joueur 2 (Jaune)';
-                player2.value = '';
-                aiInput.value = '';
+                // Mode 2 joueurs : masquer difficulté
+                difficultySelect.style.display = 'none';
+                player2Label.textContent = 'Joueur 2 (Jaune)';
+                player2Input.value = '';
+                player2Input.disabled = false;
+                player2Input.style.backgroundColor = '';
+                aiModeInput.value = '';
             }
         }
 
+        // Confirmer avant d'abandonner la partie en cours
         function confirmNewGame() {
-            if (confirm('Voulez-vous vraiment abandonner la partie en cours ?')) {
+            if (confirm('⚠️ Voulez-vous vraiment abandonner la partie en cours et commencer une nouvelle partie ?')) {
                 document.getElementById('newGameForm').style.display = 'block';
-                document.querySelector('.continue-box').style.display = 'none';
+                document.getElementById('continueBox').style.display = 'none';
             }
         }
 
+        // Fermer modal en cliquant en dehors
         window.onclick = function(event) {
             const modal = document.getElementById('tutorialModal');
-            if (event.target === modal) closeTutorial();
+            if (event.target === modal) {
+                closeTutorial();
+            }
         }
+
+        // Empêcher la fermeture accidentelle du modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeTutorial();
+            }
+        });
     </script>
 </body>
 </html>

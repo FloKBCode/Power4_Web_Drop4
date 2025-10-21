@@ -20,7 +20,7 @@ var (
 	scoreP2     int
 	gamesPlayed int
 	aiMode      bool
-	aiDifficulty string // "facile", "moyen", "difficile"
+	aiDifficulty string
 )
 
 type GameData struct {
@@ -37,6 +37,10 @@ const saveFile = "power4_save.json"
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	
+	// Initialiser les templates AVANT de démarrer le serveur
+	initTemplates()
+	
 	board = game.NewBoard()
 
 	// Routes
@@ -49,7 +53,8 @@ func main() {
 	http.HandleFunc("/reset-scores", resetScoresHandler)
 
 	// Servir fichiers statiques
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	fmt.Println("✅ Serveur lancé : http://localhost:8088")
 	http.ListenAndServe(":8088", nil)
@@ -61,7 +66,12 @@ func homePageHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		HasSave: hasSave(),
 	}
-	tmpl.ExecuteTemplate(w, "home.html", data)
+	
+	err := tmpl.ExecuteTemplate(w, "home.html", data)
+	if err != nil {
+		fmt.Println("Erreur template home:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func startGameHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,9 +118,13 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 	board = game.NewBoardWithNames(player1, player2)
 	scoreP1 = 0
 	scoreP2 = 0
+	gamesPlayed = 0
 	
 	// Supprimer ancienne sauvegarde
 	deleteSave()
+	
+	// Sauvegarder nouvelle partie
+	saveGame()
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
@@ -128,6 +142,7 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		Board:        board,
 		ScoreP1:      scoreP1,
 		ScoreP2:      scoreP2,
+		GamesPlayed:  gamesPlayed,
 		AIMode:       aiMode,
 		AIDifficulty: aiDifficulty,
 	}
@@ -153,7 +168,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if board.IsColumnFull(col) {
+	if board.GameOver || board.IsColumnFull(col) {
 		http.Redirect(w, r, "/game", http.StatusSeeOther)
 		return
 	}
@@ -217,6 +232,8 @@ func resetScoresHandler(w http.ResponseWriter, r *http.Request) {
 	scoreP1 = 0
 	scoreP2 = 0
 	gamesPlayed = 0
+	
+	saveGame()
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
@@ -236,7 +253,6 @@ func getAIMove(b *game.Board, difficulty string) int {
 	}
 }
 
-// IA Facile : Joue au hasard
 func aiEasy(b *game.Board) int {
 	available := []int{}
 	for col := 0; col < 7; col++ {
@@ -250,71 +266,48 @@ func aiEasy(b *game.Board) int {
 	return available[rand.Intn(len(available))]
 }
 
-// IA Moyen : Gagne si possible, bloque sinon joue au hasard
 func aiMedium(b *game.Board) int {
-	// 1. Essayer de gagner
 	if col := findWinningMove(b, 2); col != -1 {
 		return col
 	}
-
-	// 2. Bloquer le joueur
 	if col := findWinningMove(b, 1); col != -1 {
 		return col
 	}
-
-	// 3. Jouer au hasard
 	return aiEasy(b)
 }
 
-// IA Difficile : Stratégie avancée
 func aiHard(b *game.Board) int {
-	// 1. Gagner
 	if col := findWinningMove(b, 2); col != -1 {
 		return col
 	}
-
-	// 2. Bloquer
 	if col := findWinningMove(b, 1); col != -1 {
 		return col
 	}
-
-	// 3. Privilégier centre
 	if !b.IsColumnFull(3) {
 		return 3
 	}
-
-	// 4. Colonnes proches du centre
 	priority := []int{2, 4, 1, 5, 0, 6}
 	for _, col := range priority {
 		if !b.IsColumnFull(col) {
 			return col
 		}
 	}
-
 	return -1
 }
 
-// Trouve un coup gagnant pour le joueur spécifié
 func findWinningMove(b *game.Board, player int) int {
 	for col := 0; col < 7; col++ {
 		if b.IsColumnFull(col) {
 			continue
 		}
-
-		// Simuler le coup
 		row := simulateMove(b, col, player)
 		if row == -1 {
 			continue
 		}
-
-		// Vérifier victoire
 		if checkWinAt(b, row, col, player) {
-			// Annuler simulation
 			b.Grid[row][col] = 0
 			return col
 		}
-
-		// Annuler simulation
 		b.Grid[row][col] = 0
 	}
 	return -1
@@ -331,7 +324,6 @@ func simulateMove(b *game.Board, col, player int) int {
 }
 
 func checkWinAt(b *game.Board, row, col, player int) bool {
-	// Horizontal
 	count := 1
 	for c := col - 1; c >= 0 && b.Grid[row][c] == player; c-- {
 		count++
@@ -343,7 +335,6 @@ func checkWinAt(b *game.Board, row, col, player int) bool {
 		return true
 	}
 
-	// Vertical
 	count = 1
 	for r := row + 1; r < 6 && b.Grid[r][col] == player; r++ {
 		count++
@@ -355,7 +346,6 @@ func checkWinAt(b *game.Board, row, col, player int) bool {
 		return true
 	}
 
-	// Diagonale ↗
 	count = 1
 	for i := 1; row-i >= 0 && col-i >= 0 && b.Grid[row-i][col-i] == player; i++ {
 		count++
@@ -367,7 +357,6 @@ func checkWinAt(b *game.Board, row, col, player int) bool {
 		return true
 	}
 
-	// Diagonale ↘
 	count = 1
 	for i := 1; row-i >= 0 && col+i < 7 && b.Grid[row-i][col+i] == player; i++ {
 		count++
@@ -385,6 +374,7 @@ func saveGame() {
 		Board        *game.Board
 		ScoreP1      int
 		ScoreP2      int
+		GamesPlayed  int
 		AIMode       bool
 		AIDifficulty string
 	}
@@ -393,6 +383,7 @@ func saveGame() {
 		Board:        board,
 		ScoreP1:      scoreP1,
 		ScoreP2:      scoreP2,
+		GamesPlayed:  gamesPlayed,
 		AIMode:       aiMode,
 		AIDifficulty: aiDifficulty,
 	}
@@ -419,6 +410,7 @@ func loadGame() bool {
 		Board        *game.Board
 		ScoreP1      int
 		ScoreP2      int
+		GamesPlayed  int
 		AIMode       bool
 		AIDifficulty string
 	}
@@ -432,6 +424,7 @@ func loadGame() bool {
 	board = saveData.Board
 	scoreP1 = saveData.ScoreP1
 	scoreP2 = saveData.ScoreP2
+	gamesPlayed = saveData.GamesPlayed
 	aiMode = saveData.AIMode
 	aiDifficulty = saveData.AIDifficulty
 
@@ -449,7 +442,7 @@ func deleteSave() {
 
 // ========== TEMPLATES ==========
 
-func init() {
+func initTemplates() {
 	funcMap := template.FuncMap{
 		"Seq": func(n int) []int {
 			result := make([]int, n)
@@ -474,8 +467,18 @@ func init() {
 			return len(slice)
 		},
 		"index": func(slice []game.Move, i int) game.Move {
-			return slice[i]
+			if i >= 0 && i < len(slice) {
+				return slice[i]
+			}
+			return game.Move{}
 		},
 	}
-	tmpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
+	
+	var err error
+	tmpl, err = template.New("").Funcs(funcMap).ParseGlob("templates/*.html")
+	if err != nil {
+		panic("Erreur chargement templates: " + err.Error())
+	}
+	
+	fmt.Println("✅ Templates chargés avec succès")
 }

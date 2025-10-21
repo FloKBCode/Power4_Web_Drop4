@@ -447,12 +447,12 @@ h1 {
   box-shadow: 0 5px 15px rgba(102,126,234,0.2);
 }
 
-.mode-option.input[type="radio"]:checked + .mode-card {
+.mode-option input[type="radio"]:checked + .mode-card {
   border-color: #667eea;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
   box-shadow: 0 0 20px rgba(102,126,234,0.5);
-}   
+}
 
 /* === HISTORIQUE DES COUPS === */
 .history-panel {
@@ -614,4 +614,141 @@ h1 {
   .token { width: 38px; height: 38px; }
   .reset-btn, .score-reset-btn { padding: 10px 25px; font-size: 1em; }
   .stat-box { padding: 8px 15px; font-size: 0.9em; }
+}
+
+.mode-selector {
+  margin: 25px 0;
+  text-align: left;
+}
+
+.mode-selector h3 {
+  color: #667eea;
+  margin-bottom: 15px;
+  font-size: 1.3em;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+}
+
+.mode-option {
+  flex: 1;
+  cursor: pointer;
+}
+
+.mode-option input[type="radio"] {
+  display: none;
+}
+
+.mode-card {
+  padding: 20px;
+  border: 3px solid #ddd;
+  border-radius: 15px;
+  text-align: center;
+  transition: all 0.3s;
+  background: white;
+  height: 100%;
+}
+
+.mode-option:hover .mode-card {
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+}
+
+.mode-option.active .mode-card {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+}
+
+.mode-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.mode-title {
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-bottom: 5px;
+}
+
+.mode-desc {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+/* === TUTORIEL BUTTON === */
+.tutorial-btn {
+  padding: 15px 30px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.tutorial-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.tutorial-btn-small {
+  background: linear-gradient(135deg, #ffc107, #ff9800);
+  padding: 10px 20px;
+  font-size: 1em;
+  margin-top: 15px;
+  width: 100%;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tutorial-btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+}
+
+/* === MODAL ANIMATIONS === */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { 
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* === RESPONSIVE MODE SELECTOR === */
+@media (max-width: 768px) {
+  .mode-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .mode-icon {
+    font-size: 2.5em;
+  }
+  
+  .mode-title {
+    font-size: 1.1em;
+  }
 }
