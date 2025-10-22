@@ -454,6 +454,104 @@ h1 {
   box-shadow: 0 0 20px rgba(102,126,234,0.5);
 }
 
+.mode-option.active .mode-card {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+  box-shadow: 0 5px 20px rgba(102,126,234,0.3);
+}
+
+.mode-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.mode-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.mode-desc {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* === DIFFICULTY SELECTOR === */
+.difficulty-selector {
+  margin: 25px 0;
+  padding: 20px;
+  background: rgba(255,193,7,0.1);
+  border-radius: 15px;
+  border: 2px dashed #ffc107;
+}
+
+.difficulty-selector h3 {
+  color: #ff9800;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.difficulty-dropdown {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #ffc107;
+  border-radius: 10px;
+  font-size: 1.1em;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.difficulty-dropdown:hover {
+  border-color: #ff9800;
+  box-shadow: 0 0 0 3px rgba(255,193,7,0.2);
+}
+
+.difficulty-dropdown:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 0 3px rgba(255,193,7,0.3);
+}
+
+/* === ACTION BUTTONS === */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* === RESPONSIVE MODAL === */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 20px;
+    padding: 30px 20px;
+    max-height: 90vh;
+  }
+  
+  .mode-buttons {
+    flex-direction: column;
+  }
+}
+
 /* === HISTORIQUE DES COUPS === */
 .history-panel {
   background: rgba(255,255,255,0.1);
