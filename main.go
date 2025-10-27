@@ -31,6 +31,7 @@ type GameData struct {
 	ErrorMessage string
 	AIMode       bool
 	AIDifficulty string
+	SoundToPlay  string // NOUVEAU : son à jouer
 }
 
 const saveFile = "power4_save.json"
@@ -38,7 +39,6 @@ const saveFile = "power4_save.json"
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	
-	// Initialiser les templates AVANT de démarrer le serveur
 	initTemplates()
 	
 	board = game.NewBoard()
@@ -85,7 +85,6 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 	aiModeStr := r.FormValue("ai_mode")
 	difficulty := r.FormValue("difficulty")
 
-	// Valeurs par défaut
 	if player1 == "" {
 		player1 = "Rouge"
 	}
@@ -97,7 +96,6 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Limiter longueur
 	if len(player1) > 15 {
 		player1 = player1[:15]
 	}
@@ -105,7 +103,6 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 		player2 = player2[:15]
 	}
 
-	// Configuration IA
 	aiMode = (aiModeStr == "on")
 	if aiMode {
 		aiDifficulty = difficulty
@@ -114,16 +111,12 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Nouvelle partie
 	board = game.NewBoardWithNames(player1, player2)
 	scoreP1 = 0
 	scoreP2 = 0
 	gamesPlayed = 0
 	
-	// Supprimer ancienne sauvegarde
 	deleteSave()
-	
-	// Sauvegarder nouvelle partie
 	saveGame()
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
@@ -138,6 +131,17 @@ func continueHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func gameHandler(w http.ResponseWriter, r *http.Request) {
+	soundToPlay := ""
+	
+	// Go décide quel son jouer automatiquement
+	if board.GameOver {
+		if board.Winner == 0 {
+			soundToPlay = "draw"
+		} else {
+			soundToPlay = "win"
+		}
+	}
+	
 	data := GameData{
 		Board:        board,
 		ScoreP1:      scoreP1,
@@ -145,6 +149,7 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		GamesPlayed:  gamesPlayed,
 		AIMode:       aiMode,
 		AIDifficulty: aiDifficulty,
+		SoundToPlay:  soundToPlay,
 	}
 
 	err := tmpl.ExecuteTemplate(w, "game.html", data)
@@ -178,19 +183,19 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	board.TotalMoves++
 	board.CheckWin()
 
-	// Sauvegarder après coup joueur
 	saveGame()
 
 	// Si mode IA, joueur 2 est actif et partie pas finie
 	if aiMode && board.Player == 2 && !board.GameOver {
-		time.Sleep(500 * time.Millisecond)
+		// Délai pour simulation de réflexion (varie selon difficulté)
+		delay := getAIThinkingTime(aiDifficulty)
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+		
 		aiCol := getAIMove(board, aiDifficulty)
 		if aiCol != -1 {
 			board.Move(aiCol)
 			board.TotalMoves++
 			board.CheckWin()
-			
-			// Sauvegarder après coup IA
 			saveGame()
 		}
 	}
@@ -199,7 +204,6 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
-	// Incrémenter score si partie terminée
 	if board.GameOver {
 		switch board.Winner {
 		case 1:
@@ -210,14 +214,11 @@ func resetHandler(w http.ResponseWriter, r *http.Request) {
 		gamesPlayed++
 	}
 
-	// Conserver pseudos
 	p1 := board.Player1Name
 	p2 := board.Player2Name
 
-	// Créer nouveau plateau
 	board = game.NewBoardWithNames(p1, p2)
 	
-	// Sauvegarder le nouveau plateau
 	saveGame()
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
@@ -238,7 +239,20 @@ func resetScoresHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
-// ========== SYSTÈME IA ==========
+// ========== SYSTÈME IA AMÉLIORÉ ==========
+
+func getAIThinkingTime(difficulty string) int {
+	switch difficulty {
+	case "facile":
+		return 300 + rand.Intn(200) // 300-500ms
+	case "moyen":
+		return 600 + rand.Intn(400) // 600-1000ms
+	case "difficile":
+		return 1000 + rand.Intn(500) // 1000-1500ms
+	default:
+		return 600
+	}
+}
 
 func getAIMove(b *game.Board, difficulty string) int {
 	switch difficulty {
@@ -253,7 +267,15 @@ func getAIMove(b *game.Board, difficulty string) int {
 	}
 }
 
+// Facile : joue aléatoirement avec 30% de chance de bloquer
 func aiEasy(b *game.Board) int {
+	// 30% de chance de bloquer le joueur
+	if rand.Intn(100) < 30 {
+		if col := findWinningMove(b, 1); col != -1 {
+			return col
+		}
+	}
+	
 	available := []int{}
 	for col := 0; col < 7; col++ {
 		if !b.IsColumnFull(col) {
@@ -266,33 +288,223 @@ func aiEasy(b *game.Board) int {
 	return available[rand.Intn(len(available))]
 }
 
+// Moyen : bloque et attaque systématiquement
 func aiMedium(b *game.Board) int {
+	// 1. Gagner si possible
 	if col := findWinningMove(b, 2); col != -1 {
 		return col
 	}
+	
+	// 2. Bloquer l'adversaire
 	if col := findWinningMove(b, 1); col != -1 {
 		return col
 	}
+	
+	// 3. Jouer au centre si disponible
+	if !b.IsColumnFull(3) && rand.Intn(100) < 60 {
+		return 3
+	}
+	
+	// 4. Jouer aléatoirement
 	return aiEasy(b)
 }
 
+// Difficile : stratégie avancée avec évaluation des positions
 func aiHard(b *game.Board) int {
+	// 1. Gagner immédiatement si possible
 	if col := findWinningMove(b, 2); col != -1 {
 		return col
 	}
+	
+	// 2. Bloquer l'adversaire
 	if col := findWinningMove(b, 1); col != -1 {
 		return col
 	}
-	if !b.IsColumnFull(3) {
-		return 3
+	
+	// 3. Créer une menace double (fork)
+	if col := findForkMove(b, 2); col != -1 {
+		return col
 	}
-	priority := []int{2, 4, 1, 5, 0, 6}
-	for _, col := range priority {
-		if !b.IsColumnFull(col) {
+	
+	// 4. Bloquer une menace double adverse
+	if col := findForkMove(b, 1); col != -1 {
+		return col
+	}
+	
+	// 5. Évaluer les meilleures colonnes
+	bestCol := evaluateBestMove(b)
+	if bestCol != -1 {
+		return bestCol
+	}
+	
+	// 6. Fallback sur stratégie moyenne
+	return aiMedium(b)
+}
+
+// Trouve un coup qui crée une menace double (fork)
+func findForkMove(b *game.Board, player int) int {
+	for col := 0; col < 7; col++ {
+		if b.IsColumnFull(col) {
+			continue
+		}
+		
+		row := simulateMove(b, col, player)
+		if row == -1 {
+			continue
+		}
+		
+		threats := countThreats(b, row, col, player)
+		b.Grid[row][col] = 0
+		
+		if threats >= 2 {
 			return col
 		}
 	}
 	return -1
+}
+
+// Compte le nombre de menaces créées par un coup
+func countThreats(b *game.Board, row, col, player int) int {
+	threats := 0
+	
+	if checkLineOf3(b, row, col, player, 0, 1) {
+		threats++
+	}
+	if checkLineOf3(b, row, col, player, 1, 0) {
+		threats++
+	}
+	if checkLineOf3(b, row, col, player, 1, 1) {
+		threats++
+	}
+	if checkLineOf3(b, row, col, player, 1, -1) {
+		threats++
+	}
+	
+	return threats
+}
+
+// Vérifie si un coup crée un alignement de 3 avec possibilité de 4
+func checkLineOf3(b *game.Board, row, col, player, dRow, dCol int) bool {
+	count := 1
+	empty := 0
+	
+	for i := 1; i < 4; i++ {
+		newRow := row + dRow*i
+		newCol := col + dCol*i
+		if newRow < 0 || newRow >= 6 || newCol < 0 || newCol >= 7 {
+			break
+		}
+		if b.Grid[newRow][newCol] == player {
+			count++
+		} else if b.Grid[newRow][newCol] == 0 {
+			empty++
+			break
+		} else {
+			break
+		}
+	}
+	
+	for i := 1; i < 4; i++ {
+		newRow := row - dRow*i
+		newCol := col - dCol*i
+		if newRow < 0 || newRow >= 6 || newCol < 0 || newCol >= 7 {
+			break
+		}
+		if b.Grid[newRow][newCol] == player {
+			count++
+		} else if b.Grid[newRow][newCol] == 0 {
+			empty++
+			break
+		} else {
+			break
+		}
+	}
+	
+	return count == 3 && empty >= 1
+}
+
+// Évalue et retourne le meilleur coup basé sur un score
+func evaluateBestMove(b *game.Board) int {
+	bestScore := -1000
+	bestCol := -1
+	
+	for col := 0; col < 7; col++ {
+		if b.IsColumnFull(col) {
+			continue
+		}
+		
+		row := simulateMove(b, col, 2)
+		if row == -1 {
+			continue
+		}
+		
+		score := evaluatePosition(b, row, col, 2)
+		b.Grid[row][col] = 0
+		
+		if score > bestScore {
+			bestScore = score
+			bestCol = col
+		}
+	}
+	
+	return bestCol
+}
+
+// Évalue la qualité d'une position
+func evaluatePosition(b *game.Board, row, col, player int) int {
+	score := 0
+	
+	centerDistance := abs(col - 3)
+	score += (3 - centerDistance) * 3
+	
+	score += (5 - row) * 2
+	
+	score += evaluateDirection(b, row, col, player, 0, 1)
+	score += evaluateDirection(b, row, col, player, 1, 0)
+	score += evaluateDirection(b, row, col, player, 1, 1)
+	score += evaluateDirection(b, row, col, player, 1, -1)
+	
+	return score
+}
+
+// Évalue une direction spécifique
+func evaluateDirection(b *game.Board, row, col, player, dRow, dCol int) int {
+	score := 0
+	count := 1
+	empty := 0
+	
+	for _, dir := range []int{1, -1} {
+		for i := 1; i < 4; i++ {
+			newRow := row + dRow*i*dir
+			newCol := col + dCol*i*dir
+			if newRow < 0 || newRow >= 6 || newCol < 0 || newCol >= 7 {
+				break
+			}
+			if b.Grid[newRow][newCol] == player {
+				count++
+			} else if b.Grid[newRow][newCol] == 0 {
+				empty++
+				break
+			} else {
+				break
+			}
+		}
+	}
+	
+	if count == 3 && empty >= 1 {
+		score += 50
+	} else if count == 2 && empty >= 2 {
+		score += 10
+	}
+	
+	return score
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 func findWinningMove(b *game.Board, player int) int {
