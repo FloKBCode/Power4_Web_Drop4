@@ -10,6 +10,9 @@
   <!-- BOUTON RETOUR MENU -->
   <a href="/" class="menu-btn">⬅️ Menu</a>
 
+  <!-- CONTRÔLE AUDIO -->
+  <button id="audioToggle" class="audio-toggle">🔊</button>
+
   <h1>🎮 Puissance 4 🎮</h1>
   
   <!-- TABLEAU DE SCORES NÉON avec pseudos du backend -->
@@ -32,7 +35,7 @@
     <div class="player-info">Au tour de {{.GetCurrentPlayerName}}</div>
   {{end}}
   
-  <!-- Correction : utilisation de ErrorMessage au lieu de Error -->
+  <!-- Message d'erreur -->
   {{if .ErrorMessage}}
     <div class="error-message">{{.ErrorMessage}}</div>
   {{end}}
@@ -48,15 +51,30 @@
   <!-- GRILLE DE JEU -->
   <div class="game-container">
     <div class="grid">
-      {{range $i := .Grid}}
-        {{range $j, $cell := $i}}
-          <form method="POST" action="/play" style="margin: 0; padding: 0;" class="cell-form">
+      {{range $i := Seq 6}}
+        {{range $j := Seq 7}}
+          <form method="POST" action="/play" style="margin: 0; padding: 0;" class="cell-form" data-column="{{$j}}">
             <input type="hidden" name="column" value="{{$j}}">
-            <button type="submit" class="cell" {{if $.GameOver}}disabled{{end}} {{if $.IsColumnFull $j}}disabled{{end}}>
-              {{if eq $cell 1}}
-                <div class="token red {{if $.IsWinningCell $i $j}}active{{end}}"></div>
-              {{else if eq $cell 2}}
-                <div class="token yellow {{if $.IsWinningCell $i $j}}active{{end}}"></div>
+            <button type="submit" class="cell" {{if $.GameOver}}disabled{{end}} {{if IsColumnFull $j}}disabled{{end}}>
+              {{$cellValue := $.GetCell $i $j}}
+              {{if eq $cellValue 1}}
+                {{$isLastMove := false}}
+                {{if $.History}}
+                  {{$lastMove := index $.History (sub (len $.History) 1)}}
+                  {{if and (eq $lastMove.Row $i) (eq $lastMove.Column $j)}}
+                    {{$isLastMove = true}}
+                  {{end}}
+                {{end}}
+                <div class="token red {{if $isLastMove}}last-move{{end}} {{if $.IsWinningCell $i $j}}active{{end}}"></div>
+              {{else if eq $cellValue 2}}
+                {{$isLastMove := false}}
+                {{if $.History}}
+                  {{$lastMove := index $.History (sub (len $.History) 1)}}
+                  {{if and (eq $lastMove.Row $i) (eq $lastMove.Column $j)}}
+                    {{$isLastMove = true}}
+                  {{end}}
+                {{end}}
+                <div class="token yellow {{if $isLastMove}}last-move{{end}} {{if $.IsWinningCell $i $j}}active{{end}}"></div>
               {{end}}
             </button>
           </form>
@@ -111,6 +129,15 @@
     <source src="/static/sounds/error.mp3" type="audio/mpeg">
   </audio>
 
+  <div id="gameData"
+     data-ai-mode="{{if .AIMode}}true{{else}}false{{end}}"
+     data-current-player="{{if .Player}}{{.Player}}{{else}}1{{end}}"
+     data-game-over="{{if .GameOver}}true{{else}}false{{end}}"
+     data-winner="{{if .Winner}}{{.Winner}}{{else}}0{{end}}"
+     data-sound-to-play="{{.SoundToPlay}}"
+     data-error="{{if .ErrorMessage}}1{{else}}0{{end}}"></div>
+  </div>
+
   <script>
     // === GESTION AUDIO ===
     const bgMusic = document.getElementById('bgMusic');
@@ -155,11 +182,20 @@
     }
 
     // === SONS BASÉS SUR L'ÉTAT DU JEU ===
-    const soundToPlay = "";
-    const isAIMode = false;
-    const currentPlayer = {{.Player}};
-    const gameOver = {{.GameOver}};
-    const winner = {{.Winner}};
+    const gameDataEl = document.getElementById('gameData');
+    const gameState = {
+      isAIMode: gameDataEl.dataset.aiMode === 'true',
+      currentPlayer: Number(gameDataEl.dataset.currentPlayer),
+      gameOver: gameDataEl.dataset.gameOver === 'true',
+      winner: Number(gameDataEl.dataset.winner),
+      soundToPlay: gameDataEl.dataset.soundToPlay || ""
+    };
+
+    const isAIMode = gameState.isAIMode;
+    const currentPlayer = gameState.currentPlayer;
+    const gameOver = gameState.gameOver;
+    const winner = gameState.winner;
+    const soundToPlay = gameState.soundToPlay;
 
     // Jouer les sons de fin de partie
     window.addEventListener('load', () => {
@@ -184,15 +220,10 @@
     
     forms.forEach(form => {
       form.addEventListener('submit', (e) => {
-        // Jouer le son de jeton
         playSound(dropSound);
-        
-        // Désactiver tous les formulaires pour éviter les clics multiples
         forms.forEach(f => f.style.pointerEvents = 'none');
         
-        // Si mode IA et c'est le tour du joueur 1, afficher l'overlay
         if (isAIMode && !gameOver && currentPlayer === 1) {
-          // Délai pour laisser l'animation du jeton se terminer
           setTimeout(() => {
             aiThinking.style.display = 'flex';
           }, 500);
@@ -201,9 +232,11 @@
     });
 
     // === GESTION DES ERREURS ===
-    {{if .ErrorMessage}}
-      playSound(errorSound);
-    {{end}}
+  // Lire l'indicateur d'erreur depuis les data-attributes (aucune directive Go dans le script)
+  const hasError = gameDataEl.dataset.error === '1';
+  if (hasError) {
+    playSound(errorSound);
+  }
 
     // Empêcher les clics multiples pendant que l'IA réfléchit
     if (isAIMode && currentPlayer === 2 && !gameOver) {
