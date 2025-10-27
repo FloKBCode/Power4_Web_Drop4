@@ -5,13 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Puissance 4 - Scores Néon</title>
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Animation de transition pour le bouton audio */
+    .audio-toggle {
+      transition: all 0.3s ease, background 0.3s ease !important;
+    }
+    
+    .audio-toggle:hover {
+      transform: scale(1.15) rotate(10deg) !important;
+    }
+  </style>
 </head>
 <body>
   <!-- BOUTON RETOUR MENU -->
   <a href="/" class="menu-btn">⬅️ Menu</a>
 
-  <!-- CONTRÔLE AUDIO -->
-  <button id="audioToggle" class="audio-toggle">🔊</button>
+  <!-- CONTRÔLE AUDIO AMÉLIORÉ -->
+  <button id="audioToggle" class="audio-toggle" title="Activer/Désactiver la musique">
+    <span id="audioIcon">🔊</span>
+  </button>
 
   <h1>🎮 Puissance 4 🎮</h1>
   
@@ -88,7 +100,7 @@
       <h3>📜 Historique</h3>
       <div class="history-list">
         {{range $index, $move := .History}}
-          <div class="history-item">
+          <div class="history-item {{if eq $index (sub (len $.History) 1)}}last-move{{end}}">
             #{{add $index 1}} - 
             {{if eq $move.Player 1}}🔴{{else}}🟡{{end}}
             Col {{add $move.Column 1}}
@@ -110,22 +122,19 @@
   </div>
 
   <!-- AUDIO ELEMENTS -->
-  <audio id="bgMusic" loop>
+  <audio id="bgMusic" loop preload="auto">
     <source src="/static/sounds/background.mp3" type="audio/mpeg">
   </audio>
-  <audio id="dropSound">
+  <audio id="dropSound" preload="auto">
     <source src="/static/sounds/drop.mp3" type="audio/mpeg">
   </audio>
-  <audio id="winSound">
+  <audio id="winSound" preload="auto">
     <source src="/static/sounds/win.mp3" type="audio/mpeg">
   </audio>
-  <audio id="loseSound">
+  <audio id="loseSound" preload="auto">
     <source src="/static/sounds/lose.mp3" type="audio/mpeg">
   </audio>
-  <audio id="drawSound">
-    <source src="/static/sounds/draw.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="errorSound">
+  <audio id="errorSound" preload="auto">
     <source src="/static/sounds/error.mp3" type="audio/mpeg">
   </audio>
 
@@ -135,7 +144,7 @@
      data-game-over="{{if .GameOver}}true{{else}}false{{end}}"
      data-winner="{{if .Winner}}{{.Winner}}{{else}}0{{end}}"
      data-sound-to-play="{{.SoundToPlay}}"
-     data-error="{{if .ErrorMessage}}1{{else}}0{{end}}"></div>
+     data-error="{{if .ErrorMessage}}1{{else}}0{{end}}">
   </div>
 
   <script>
@@ -144,51 +153,69 @@
     const dropSound = document.getElementById('dropSound');
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
-    const drawSound = document.getElementById('drawSound');
     const errorSound = document.getElementById('errorSound');
     const audioToggle = document.getElementById('audioToggle');
+    const audioIcon = document.getElementById('audioIcon');
     
     let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+    let musicStarted = sessionStorage.getItem('musicStarted') === 'true';
     
     // Initialiser l'état audio
-    if (audioEnabled) {
-      audioToggle.textContent = '🔊';
-      bgMusic.volume = 0.3;
-      bgMusic.play().catch(e => console.log('Autoplay bloqué:', e));
-    } else {
-      audioToggle.textContent = '🔇';
-      bgMusic.pause();
+    function updateAudioState() {
+      if (audioEnabled) {
+        audioIcon.textContent = '🔊';
+        audioToggle.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+        
+        // Ne démarrer la musique qu'une seule fois par session
+        if (!musicStarted) {
+          bgMusic.volume = 0.3;
+          bgMusic.play().then(() => {
+            sessionStorage.setItem('musicStarted', 'true');
+            musicStarted = true;
+          }).catch(e => console.log('Autoplay bloqué:', e));
+        } else {
+          bgMusic.play().catch(e => console.log('Play error:', e));
+        }
+      } else {
+        audioIcon.textContent = '🔇';
+        audioToggle.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+        bgMusic.pause();
+      }
     }
+    
+    updateAudioState();
 
-    // Toggle audio
+    // Toggle audio avec animation
     audioToggle.addEventListener('click', () => {
       audioEnabled = !audioEnabled;
       localStorage.setItem('audioEnabled', audioEnabled);
       
-      if (audioEnabled) {
-        audioToggle.textContent = '🔊';
-        bgMusic.play().catch(e => console.log('Play error:', e));
-      } else {
-        audioToggle.textContent = '🔇';
-        bgMusic.pause();
-      }
+      // Animation du bouton
+      audioToggle.style.transform = 'scale(0.9) rotate(15deg)';
+      setTimeout(() => {
+        audioToggle.style.transform = 'scale(1) rotate(0deg)';
+      }, 150);
+      
+      updateAudioState();
     });
 
     function playSound(sound) {
       if (audioEnabled && sound) {
         sound.currentTime = 0;
+        sound.volume = 0.5;
         sound.play().catch(e => console.log('Sound error:', e));
       }
     }
 
-    // === SONS BASÉS SUR L'ÉTAT DU JEU ===
+    // === DONNÉES DU JEU ===
     const gameDataEl = document.getElementById('gameData');
     const gameState = {
       isAIMode: gameDataEl.dataset.aiMode === 'true',
       currentPlayer: Number(gameDataEl.dataset.currentPlayer),
       gameOver: gameDataEl.dataset.gameOver === 'true',
       winner: Number(gameDataEl.dataset.winner),
-      soundToPlay: gameDataEl.dataset.soundToPlay || ""
+      soundToPlay: gameDataEl.dataset.soundToPlay || "",
+      hasError: gameDataEl.dataset.error === '1'
     };
 
     const isAIMode = gameState.isAIMode;
@@ -197,8 +224,9 @@
     const winner = gameState.winner;
     const soundToPlay = gameState.soundToPlay;
 
-    // Jouer les sons de fin de partie
+    // === JOUER LES SONS DE FIN DE PARTIE ===
     window.addEventListener('load', () => {
+      // Son de victoire/défaite
       if (soundToPlay === "win") {
         setTimeout(() => {
           if (winner === 1) {
@@ -209,41 +237,65 @@
             playSound(loseSound);
           }
         }, 600);
-      } else if (soundToPlay === "draw") {
-        setTimeout(() => playSound(drawSound), 600);
+      }
+      
+      // Son d'erreur
+      if (gameState.hasError) {
+        playSound(errorSound);
       }
     });
 
-    // === GESTION DES FORMULAIRES ===
+    // === GESTION DES FORMULAIRES ET IA ===
     const aiThinking = document.getElementById('aiThinking');
     const forms = document.querySelectorAll('.cell-form');
     
+    // Vérifier si l'IA doit jouer (paramètre URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const aiShouldThink = urlParams.get('ai_thinking') === 'true';
+    
+    if (aiShouldThink && isAIMode && !gameOver) {
+      // Afficher l'overlay "IA réfléchit"
+      aiThinking.style.display = 'flex';
+      
+      // Désactiver tous les formulaires
+      forms.forEach(form => {
+        form.style.pointerEvents = 'none';
+      });
+      
+      // Simuler le délai de réflexion de l'IA puis recharger
+      setTimeout(() => {
+        // Faire jouer l'IA côté serveur via fetch
+        fetch('/ai-play', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          }
+        }).then(() => {
+          // Recharger la page sans le paramètre
+          window.location.href = '/game';
+        }).catch(err => {
+          console.error('Erreur IA:', err);
+          window.location.href = '/game';
+        });
+      }, 1000); // Délai visible pour l'utilisateur
+    }
+    
+    // Gérer la soumission des formulaires
     forms.forEach(form => {
       form.addEventListener('submit', (e) => {
+        // Jouer le son de drop
         playSound(dropSound);
-        forms.forEach(f => f.style.pointerEvents = 'none');
         
-        if (isAIMode && !gameOver && currentPlayer === 1) {
-          setTimeout(() => {
-            aiThinking.style.display = 'flex';
-          }, 500);
-        }
+        // Désactiver tous les formulaires pour éviter double-clic
+        forms.forEach(f => f.style.pointerEvents = 'none');
       });
     });
 
-    // === GESTION DES ERREURS ===
-  // Lire l'indicateur d'erreur depuis les data-attributes (aucune directive Go dans le script)
-  const hasError = gameDataEl.dataset.error === '1';
-  if (hasError) {
-    playSound(errorSound);
-  }
-
-    // Empêcher les clics multiples pendant que l'IA réfléchit
+    // Empêcher les interactions si c'est au tour de l'IA
     if (isAIMode && currentPlayer === 2 && !gameOver) {
       forms.forEach(form => {
         form.style.pointerEvents = 'none';
       });
-      aiThinking.style.display = 'flex';
     }
   </script>
 </body>

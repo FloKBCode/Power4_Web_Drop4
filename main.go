@@ -32,6 +32,7 @@ type GameData struct {
 	AIMode       bool
 	AIDifficulty string
 	SoundToPlay  string
+	AIJustPlayed bool
 }
 
 const saveFile = "power4_save.json"
@@ -49,6 +50,7 @@ func main() {
 	http.HandleFunc("/continue", continueHandler)
 	http.HandleFunc("/game", gameHandler)
 	http.HandleFunc("/play", playHandler)
+	http.HandleFunc("/ai-play", aiPlayHandler)
 	http.HandleFunc("/reset", resetHandler)
 	http.HandleFunc("/reset-scores", resetScoresHandler)
 
@@ -136,7 +138,7 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 	// Déterminer quel son jouer
 	if board.GameOver {
 		if board.Winner == 0 {
-			soundToPlay = "draw"
+			soundToPlay = ""  // Pas de son pour match nul
 		} else {
 			soundToPlay = "win"
 		}
@@ -150,6 +152,7 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 		AIMode:       aiMode,
 		AIDifficulty: aiDifficulty,
 		SoundToPlay:  soundToPlay,
+		AIJustPlayed: false,
 	}
 
 	err := tmpl.ExecuteTemplate(w, "game.html", data)
@@ -185,22 +188,42 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 
 	saveGame()
 
-	// Si mode IA, joueur 2 est actif et partie pas finie
+	// Si la partie n'est pas terminée et c'est le mode IA
 	if aiMode && board.Player == 2 && !board.GameOver {
-		// Délai pour simulation de réflexion (varie selon difficulté)
-		delay := getAIThinkingTime(aiDifficulty)
-		time.Sleep(time.Duration(delay) * time.Millisecond)
-		
-		aiCol := getAIMove(board, aiDifficulty)
-		if aiCol != -1 {
-			board.Move(aiCol)
-			board.TotalMoves++
-			board.CheckWin()
-			saveGame()
-		}
+		// L'IA va jouer - on redirige vers une page d'attente
+		http.Redirect(w, r, "/game?ai_thinking=true", http.StatusSeeOther)
+		return
 	}
 
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
+}
+
+func aiPlayHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Vérifier que c'est bien le mode IA et le tour de l'IA
+	if !aiMode || board.Player != 2 || board.GameOver {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Délai pour simulation de réflexion
+	delay := getAIThinkingTime(aiDifficulty)
+	time.Sleep(time.Duration(delay) * time.Millisecond)
+	
+	// L'IA joue
+	aiCol := getAIMove(board, aiDifficulty)
+	if aiCol != -1 {
+		board.Move(aiCol)
+		board.TotalMoves++
+		board.CheckWin()
+		saveGame()
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func resetHandler(w http.ResponseWriter, r *http.Request) {
