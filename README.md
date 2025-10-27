@@ -185,10 +185,7 @@ power4-web/
 │   └── game.html           # Interface de jeu
 ├── static/
 │   ├── style.css           # Styles + Animations
-│   └── sounds/             # Fichiers audio
-│       ├── drop.mp3        # Son placement jeton
-│       ├── win.mp3         # Son victoire
-│       └── lose.mp3        # Son défaite
+│   
 ├── power4_save.json        # Sauvegarde auto (généré)
 ├── README.md               # Documentation
 ├── manual_test.md          # Plan de tests

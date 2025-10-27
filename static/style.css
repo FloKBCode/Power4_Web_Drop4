@@ -344,7 +344,7 @@ h1 {
 }
 
 .token.last-move {
-  animation: drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: drop 0.6s forwards;
 }
 
 .token.active {
@@ -743,10 +743,14 @@ h1 {
 }
 
 @keyframes drop {
-  0% { transform: translateY(-500px); opacity: 0; }
-  60% { transform: translateY(0); opacity: 1; }
-  80% { transform: translateY(-10px); }
-  100% { transform: translateY(0); }
+  from {
+    transform: translateY(-500px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes glow {

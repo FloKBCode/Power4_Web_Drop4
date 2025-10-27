@@ -5,337 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Puissance 4 - En jeu</title>
   <link rel="stylesheet" href="/static/style.css">
-  <style>
-    /* Repositionner le bouton audio en haut à droite */
-    .audio-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-      z-index: 1001;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .audio-toggle:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .audio-toggle:active {
-      transform: translateY(-1px) scale(0.95);
-    }
-
-    .audio-icon {
-      font-size: 1.8em;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-      transition: transform 0.3s ease;
-    }
-
-    .audio-toggle.muted {
-      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
-      border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    .audio-toggle.muted .audio-icon {
-      opacity: 0.6;
-    }
-
-    /* Améliorer l'overlay IA */
-    .ai-thinking-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      animation: fadeInOverlay 0.3s ease;
-    }
-
-    @keyframes fadeInOverlay {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .ai-thinking-content {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 50px 70px;
-      border-radius: 25px;
-      text-align: center;
-      box-shadow: 0 0 60px rgba(102, 126, 234, 0.8),
-                  0 0 100px rgba(118, 75, 162, 0.6);
-      animation: slideUpBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      max-width: 90%;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-    }
-
-    @keyframes slideUpBounce {
-      0% { 
-        transform: translateY(100px) scale(0.8); 
-        opacity: 0; 
-      }
-      60% { 
-        transform: translateY(-10px) scale(1.02); 
-      }
-      100% { 
-        transform: translateY(0) scale(1); 
-        opacity: 1; 
-      }
-    }
-
-    .ai-brain-container {
-      position: relative;
-      margin-bottom: 25px;
-    }
-
-    .ai-brain {
-      font-size: 5em;
-      animation: brainPulse 1.5s ease-in-out infinite;
-      display: inline-block;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-    }
-
-    @keyframes brainPulse {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      25% { transform: scale(1.05) rotate(-5deg); }
-      75% { transform: scale(1.05) rotate(5deg); }
-    }
-
-    .thinking-dots {
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 8px;
-    }
-
-    .dot {
-      font-size: 2em;
-      color: white;
-      animation: dotBounce 1.4s ease-in-out infinite;
-      opacity: 0;
-    }
-
-    .dot:nth-child(1) { animation-delay: 0s; }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes dotBounce {
-      0%, 80%, 100% { 
-        opacity: 0; 
-        transform: translateY(0); 
-      }
-      40% { 
-        opacity: 1; 
-        transform: translateY(-10px); 
-      }
-    }
-
-    .ai-thinking-text {
-      margin: 20px 0;
-    }
-
-    .ai-main-text {
-      color: white;
-      font-size: 1.8em;
-      font-weight: bold;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-      letter-spacing: 1px;
-    }
-
-    .ai-sub-text {
-      color: rgba(255, 255, 255, 0.95);
-      font-size: 1.2em;
-      font-style: italic;
-      margin: 0;
-      min-height: 1.5em;
-      animation: textFade 0.5s ease;
-    }
-
-    @keyframes textFade {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 25px;
-    }
-
-    .progress-fill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #fff, #FFD700, #fff);
-      border-radius: 10px;
-      animation: progressSlide 2s ease-in-out infinite;
-      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-    }
-
-    @keyframes progressSlide {
-      0% { 
-        width: 0%; 
-        transform: translateX(0);
-      }
-      50% { 
-        width: 100%; 
-        transform: translateX(0);
-      }
-      100% { 
-        width: 0%; 
-        transform: translateX(100%);
-      }
-    }
-
-    /* === ACCESSIBILITÉ === */
-    
-    /* Mode réduit d'animations pour utilisateurs sensibles */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-      
-      .token.last-move,
-      .token.winning {
-        animation: none !important;
-      }
-      
-      .ai-thinking-overlay,
-      .ai-thinking-content {
-        animation: none !important;
-      }
-    }
-
-    /* Amélioration contrastes pour malvoyants */
-    @media (prefers-contrast: high) {
-      .scoreboard.neon {
-        border-width: 3px;
-        border-color: #00ffff;
-      }
-      
-      .token.red {
-        background: #ff0000;
-        border: 3px solid #000;
-      }
-      
-      .token.yellow {
-        background: #ffff00;
-        border: 3px solid #000;
-      }
-      
-      .cell {
-        border-width: 4px;
-      }
-    }
-
-    /* Navigation clavier améliorée */
-    .cell:focus-visible,
-    .reset-btn:focus-visible,
-    .score-reset-btn:focus-visible,
-    .menu-btn:focus-visible,
-    .audio-toggle:focus-visible {
-      outline: 4px solid #FFD700;
-      outline-offset: 4px;
-      box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.3);
-    }
-
-    /* Skip to main content pour lecteurs d'écran */
-    .skip-link {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      background: #667eea;
-      color: white;
-      padding: 8px;
-      text-decoration: none;
-      z-index: 10000;
-    }
-
-    .skip-link:focus {
-      top: 0;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .audio-toggle {
-        top: 10px;
-        right: 10px;
-        width: 55px;
-        height: 55px;
-      }
-      
-      .audio-icon {
-        font-size: 1.5em;
-      }
-
-      .ai-thinking-content {
-        padding: 40px 50px;
-      }
-
-      .ai-brain {
-        font-size: 4em;
-      }
-
-      .ai-main-text {
-        font-size: 1.5em;
-      }
-
-      .ai-sub-text {
-        font-size: 1.1em;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .audio-toggle {
-        width: 50px;
-        height: 50px;
-      }
-
-      .audio-icon {
-        font-size: 1.4em;
-      }
-
-      .ai-thinking-content {
-        padding: 30px 35px;
-      }
-
-      .ai-brain {
-        font-size: 3em;
-      }
-
-      .ai-main-text {
-        font-size: 1.3em;
-      }
-
-      .ai-sub-text {
-        font-size: 1em;
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- BOUTON RETOUR MENU -->
@@ -349,7 +18,7 @@
     <span id="audioIcon" class="audio-icon">🔊</span>
   </button>
 
-  <h1>🎮 Puissance 4 🎮</h1>
+  <h1>🎮 Drop 4 🎮</h1>
   
   <!-- TABLEAU DE SCORES NÉON -->
   <div class="scoreboard neon">
@@ -408,7 +77,7 @@
   {{end}}
   
   <!-- OVERLAY IA -->
-  <div id="aiThinking" class="ai-thinking-overlay">
+  <div id="aiThinking" class="ai-thinking-overlay" style="display: none;">
     <div class="ai-thinking-content">
       <div class="ai-brain-container">
         <div class="ai-brain">🤖</div>
@@ -498,224 +167,294 @@
     </form>
   </div>
 
-  <!-- AUDIO ELEMENTS -->
-  <audio id="dropSound" preload="auto">
-    <source src="/static/sounds/drop.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="winSound" preload="auto">
-    <source src="/static/sounds/win.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="loseSound" preload="auto">
-    <source src="/static/sounds/lose.mp3" type="audio/mpeg">
-  </audio>
-
-  <div id="gameData"
+  <!-- DONNÉES DU JEU -->
+  <div id="gameData" style="display: none;"
      data-ai-mode="{{if .AIMode}}true{{else}}false{{end}}"
-     data-current-player="{{if .Player}}{{.Player}}{{else}}1{{end}}"
-     data-game-over="{{if .GameOver}}true{{else}}false{{end}}"
-     data-winner="{{if .Winner}}{{.Winner}}{{else}}0{{end}}"
+     data-current-player="{{.Player}}"
+     data-game-over="{{.GameOver}}"
+     data-winner="{{.Winner}}"
      data-sound-to-play="{{.SoundToPlay}}"
      data-ai-difficulty="{{.AIDifficulty}}"
-     data-error="{{if .ErrorMessage}}1{{else}}0{{end}}">
+     data-has-history="{{if .History}}{{len .History}}{{else}}0{{end}}">
   </div>
 
   <script>
-    // === GESTION AUDIO ===
-    const dropSound = document.getElementById('dropSound');
-    const winSound = document.getElementById('winSound');
-    const loseSound = document.getElementById('loseSound');
+    // ============================================
+    // 🎵 SYSTÈME AUDIO SYNTHÉTIQUE WEB AUDIO API
+    // ============================================
+    
+    let audioContext = null;
+    let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+    let bgOscillator = null;
+    let bgGain = null;
+    let musicStarted = false;
+    
+    // Initialiser AudioContext
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        console.log('🎵 AudioContext créé');
+      }
+      return audioContext;
+    }
+    
+    // ===== SONS SYNTHÉTIQUES =====
+    
+    // Son DROP (jeton qui tombe)
+    function playDropSound() {
+      if (!audioEnabled) return;
+      const ctx = initAudio();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      // Effet de chute: fréquence qui descend
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.15);
+      osc.type = 'sine';
+      
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+      
+      console.log('🔊 DROP');
+    }
+    
+    // Son VICTOIRE (mélodie joyeuse Do-Mi-Sol-Do)
+    function playWinSound() {
+      if (!audioEnabled) return;
+      const ctx = initAudio();
+      
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      const duration = 0.2;
+      
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        
+        const startTime = ctx.currentTime + (i * duration);
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+        
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      });
+      
+      console.log('🎉 VICTOIRE');
+    }
+    
+    // Son DÉFAITE (son descendant triste)
+    function playLoseSound() {
+      if (!audioEnabled) return;
+      const ctx = initAudio();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.8);
+      osc.type = 'triangle';
+      
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+      
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+      
+      console.log('😢 DÉFAITE');
+    }
+    
+    // Musique de fond (drone ambiant)
+    function startBgMusic() {
+      if (!audioEnabled || musicStarted) return;
+      const ctx = initAudio();
+      
+      bgOscillator = ctx.createOscillator();
+      bgGain = ctx.createGain();
+      
+      bgOscillator.connect(bgGain);
+      bgGain.connect(ctx.destination);
+      
+      bgOscillator.frequency.value = 110; // La grave
+      bgOscillator.type = 'sine';
+      
+      bgGain.gain.setValueAtTime(0, ctx.currentTime);
+      bgGain.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 2);
+      
+      bgOscillator.start();
+      
+      // Harmonique
+      const osc2 = ctx.createOscillator();
+      osc2.connect(bgGain);
+      osc2.frequency.value = 165; // Mi
+      osc2.type = 'sine';
+      osc2.start();
+      
+      musicStarted = true;
+      console.log('🎵 Musique démarrée');
+    }
+    
+    function stopBgMusic() {
+      if (bgOscillator && audioContext) {
+        bgGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1);
+        setTimeout(() => {
+          if (bgOscillator) {
+            bgOscillator.stop();
+            bgOscillator = null;
+            bgGain = null;
+            musicStarted = false;
+          }
+        }, 1100);
+        console.log('🔇 Musique arrêtée');
+      }
+    }
+    
+    // ===== BOUTON TOGGLE =====
     const audioToggle = document.getElementById('audioToggle');
     const audioIcon = document.getElementById('audioIcon');
     
-    let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
-    let userInteracted = false;
-    
-    // Détecter la première interaction utilisateur
-    function enableAudio() {
-      if (!userInteracted) {
-        userInteracted = true;
-        document.removeEventListener('click', enableAudio);
-        document.removeEventListener('keydown', enableAudio);
-      }
+    function updateUI() {
+      audioIcon.textContent = audioEnabled ? '🔊' : '🔇';
+      audioToggle.classList.toggle('muted', !audioEnabled);
     }
     
-    document.addEventListener('click', enableAudio);
-    document.addEventListener('keydown', enableAudio);
+    updateUI();
     
-    // Initialiser l'état audio
-    function updateAudioState() {
-      if (audioEnabled) {
-        audioIcon.textContent = '🔊';
-        audioToggle.classList.remove('muted');
-      } else {
-        audioIcon.textContent = '🔇';
-        audioToggle.classList.add('muted');
-      }
-    }
-    
-    updateAudioState();
-
-    // Toggle audio
     audioToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
+      e.preventDefault();
+      initAudio(); // Initialiser si pas encore fait
+      
       audioEnabled = !audioEnabled;
       localStorage.setItem('audioEnabled', audioEnabled);
+      updateUI();
       
-      audioToggle.style.transform = 'scale(0.85) rotate(15deg)';
-      setTimeout(() => {
-        audioToggle.style.transform = '';
-      }, 200);
+      audioToggle.style.transform = 'scale(0.9) rotate(15deg)';
+      setTimeout(() => { audioToggle.style.transform = ''; }, 200);
       
-      updateAudioState();
-    });
-
-    // Jouer un son
-    function playSound(sound, volume = 0.5) {
-      if (audioEnabled && sound && userInteracted) {
-        sound.currentTime = 0;
-        sound.volume = volume;
-        sound.play().catch(e => console.log('Erreur son:', e.message));
+      if (audioEnabled) {
+        startBgMusic();
+        playDropSound(); // Test
+      } else {
+        stopBgMusic();
       }
-    }
-
-    // === DONNÉES DU JEU ===
-    const gameDataEl = document.getElementById('gameData');
-    const gameState = {
-      isAIMode: gameDataEl.dataset.aiMode === 'true',
-      currentPlayer: Number(gameDataEl.dataset.currentPlayer),
-      gameOver: gameDataEl.dataset.gameOver === 'true',
-      winner: Number(gameDataEl.dataset.winner),
-      soundToPlay: gameDataEl.dataset.soundToPlay || "",
-      aiDifficulty: gameDataEl.dataset.aiDifficulty || "moyen",
-      hasError: gameDataEl.dataset.error === '1'
+    });
+    
+    // ===== INITIALISATION AUTO AU CLIC =====
+    let firstClick = false;
+    document.addEventListener('click', () => {
+      if (!firstClick) {
+        firstClick = true;
+        initAudio();
+        if (audioEnabled && !musicStarted) {
+          startBgMusic();
+        }
+      }
+    }, { once: true });
+    
+    // ===== DONNÉES JEU =====
+    const gd = document.getElementById('gameData');
+    const game = {
+      isAI: gd.dataset.aiMode === 'true',
+      player: parseInt(gd.dataset.currentPlayer),
+      over: gd.dataset.gameOver === 'true',
+      winner: parseInt(gd.dataset.winner),
+      sound: gd.dataset.soundToPlay,
+      diff: gd.dataset.aiDifficulty,
+      history: parseInt(gd.dataset.hasHistory)
     };
-
-    const isAIMode = gameState.isAIMode;
-    const currentPlayer = gameState.currentPlayer;
-    const gameOver = gameState.gameOver;
-    const winner = gameState.winner;
-    const soundToPlay = gameState.soundToPlay;
-
-    // === JOUER LES SONS DE FIN DE PARTIE ===
+    
+    console.log('🎮 Jeu:', game);
+    
+    // ===== JOUER SONS AU CHARGEMENT =====
     window.addEventListener('load', () => {
       setTimeout(() => {
-        if (soundToPlay === "win") {
-          // Victoire joueur 1 en PvP ou victoire contre IA
-          if (winner === 1 || (winner === 1 && isAIMode)) {
-            playSound(winSound, 0.6);
-          } 
-          // Victoire joueur 2 en PvP
-          else if (winner === 2 && !isAIMode) {
-            playSound(winSound, 0.6);
-          } 
-          // Défaite contre l'IA
-          else if (winner === 2 && isAIMode) {
-            playSound(loseSound, 0.5);
-          }
+        // Son drop si dernier coup (pas fin de partie)
+        if (game.history > 0 && !game.over) {
+          playDropSound();
         }
-      }, 800);
+        
+        // Sons de fin
+        if (game.sound === 'win' && game.over) {
+          setTimeout(() => {
+            if (game.winner === 1) {
+              playWinSound();
+            } else if (game.winner === 2 && !game.isAI) {
+              playWinSound();
+            } else if (game.winner === 2 && game.isAI) {
+              playLoseSound();
+            }
+          }, 800);
+        }
+      }, 400);
     });
-
-    // === GESTION DES FORMULAIRES ET IA ===
-    const aiThinking = document.getElementById('aiThinking');
-    const aiSubText = document.getElementById('aiSubText');
+    
+    // ===== IA =====
+    const aiOverlay = document.getElementById('aiThinking');
+    const aiText = document.getElementById('aiSubText');
     const forms = document.querySelectorAll('.cell-form');
     
-    // Messages pour l'IA
-    const aiMessages = {
-      facile: [
-        "Je choisis au hasard...",
-        "Voyons voir...",
-        "Hmm, quelle colonne ?",
-        "Eeny, meeny, miny, moe..."
-      ],
-      moyen: [
-        "J'analyse les possibilités...",
-        "Calcul de la meilleure stratégie...",
-        "Évaluation des menaces...",
-        "Recherche du coup optimal..."
-      ],
-      difficile: [
-        "Analyse approfondie en cours...",
-        "Calcul des probabilités de victoire...",
-        "Simulation de plusieurs coups à l'avance...",
-        "Optimisation stratégique maximale..."
-      ]
+    const msgs = {
+      facile: ['Je choisis au hasard...', 'Voyons voir...'],
+      moyen: ['J\'analyse...', 'Calcul en cours...'],
+      difficile: ['Analyse approfondie...', 'Simulation avancée...']
     };
     
-    // Vérifier si l'IA doit jouer
-    const urlParams = new URLSearchParams(window.location.search);
-    const aiShouldThink = urlParams.get('ai_thinking') === 'true';
-    
-    if (aiShouldThink && isAIMode && !gameOver) {
-      const messages = aiMessages[gameState.aiDifficulty] || aiMessages.moyen;
-      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-      aiSubText.textContent = randomMessage;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('ai_thinking') === 'true' && game.isAI && !game.over) {
+      const m = msgs[game.diff] || msgs.moyen;
+      aiText.textContent = m[Math.floor(Math.random() * m.length)];
+      aiOverlay.style.display = 'flex';
       
-      aiThinking.style.display = 'flex';
+      forms.forEach(f => f.style.pointerEvents = 'none');
       
-      forms.forEach(form => {
-        form.style.pointerEvents = 'none';
-      });
-      
-      const thinkingDelay = getAIThinkingDelay(gameState.aiDifficulty);
+      const delays = { facile: 800, moyen: 1200, difficile: 1800 };
+      const delay = delays[game.diff] || 1200;
       
       setTimeout(() => {
-        fetch('/ai-play', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          }
-        }).then(() => {
-          playSound(dropSound, 0.5);
-          
-          setTimeout(() => {
-            window.location.href = '/game';
-          }, 400);
-        }).catch(err => {
-          console.error('Erreur IA:', err);
-          window.location.href = '/game';
-        });
-      }, thinkingDelay);
-    } else {
-      aiThinking.style.display = 'none';
+        fetch('/ai-play', { method: 'POST' })
+          .then(() => {
+            setTimeout(() => { window.location.href = '/game'; }, 300);
+          })
+          .catch(() => { window.location.href = '/game'; });
+      }, delay);
     }
     
-    function getAIThinkingDelay(difficulty) {
-      switch(difficulty) {
-        case 'facile': return 600 + Math.random() * 400;
-        case 'moyen': return 1000 + Math.random() * 500;
-        case 'difficile': return 1500 + Math.random() * 800;
-        default: return 1000;
-      }
-    }
-    
-    // Gérer la soumission des formulaires
+    // ===== FORMULAIRES =====
     forms.forEach(form => {
-      form.addEventListener('submit', (e) => {
-        playSound(dropSound, 0.5);
-        
+      form.addEventListener('submit', () => {
+        initAudio();
+        playDropSound();
         forms.forEach(f => f.style.pointerEvents = 'none');
-        
-        const button = form.querySelector('.cell');
-        button.style.transform = 'scale(0.95)';
+        form.querySelector('.cell').style.transform = 'scale(0.95)';
       });
     });
-
-    // Empêcher les interactions si c'est au tour de l'IA
-    if (isAIMode && currentPlayer === 2 && !gameOver) {
-      forms.forEach(form => {
-        form.style.pointerEvents = 'none';
-      });
+    
+    // Bloquer si tour IA
+    if (game.isAI && game.player === 2 && !game.over) {
+      forms.forEach(f => f.style.pointerEvents = 'none');
     }
-
-    // Hover effect sur les colonnes
-    forms.forEach((form, index) => {
+    
+    // ===== HOVER =====
+    forms.forEach(form => {
       const col = form.dataset.column;
-      const button = form.querySelector('.cell');
+      const btn = form.querySelector('.cell');
       
-      button.addEventListener('mouseenter', () => {
-        if (!button.disabled && !gameOver) {
+      btn.addEventListener('mouseenter', () => {
+        if (!btn.disabled && !game.over) {
           forms.forEach(f => {
             if (f.dataset.column === col) {
               f.querySelector('.cell').classList.add('hover-column');
@@ -724,12 +463,14 @@
         }
       });
       
-      button.addEventListener('mouseleave', () => {
+      btn.addEventListener('mouseleave', () => {
         forms.forEach(f => {
           f.querySelector('.cell').classList.remove('hover-column');
         });
       });
     });
+    
+    console.log('✅ Chargé');
   </script>
 </body>
 </html>
