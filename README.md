@@ -188,7 +188,6 @@ power4-web/
 │   
 ├── power4_save.json        # Sauvegarde auto (généré)
 ├── README.md               # Documentation
-├── manual_test.md          # Plan de tests
 └── go.mod                  # Dépendances Go
 ```
 
