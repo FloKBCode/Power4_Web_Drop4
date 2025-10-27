@@ -1,0 +1,115 @@
+{
+  "Board": {
+    "Grid": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        2,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        2,
+        1,
+        0,
+        0
+      ]
+    ],
+    "Player": 1,
+    "Winner": 0,
+    "GameOver": false,
+    "Error": "",
+    "History": [
+      {
+        "Player": 1,
+        "Column": 2,
+        "Row": 5
+      },
+      {
+        "Player": 2,
+        "Column": 3,
+        "Row": 5
+      },
+      {
+        "Player": 1,
+        "Column": 3,
+        "Row": 4
+      },
+      {
+        "Player": 2,
+        "Column": 3,
+        "Row": 3
+      },
+      {
+        "Player": 1,
+        "Column": 4,
+        "Row": 5
+      },
+      {
+        "Player": 2,
+        "Column": 2,
+        "Row": 4
+      },
+      {
+        "Player": 1,
+        "Column": 2,
+        "Row": 3
+      },
+      {
+        "Player": 2,
+        "Column": 3,
+        "Row": 2
+      }
+    ],
+    "TotalMoves": 8,
+    "WinningCells": null,
+    "Player1Name": "Rouge",
+    "Player2Name": "Ordinateur"
+  },
+  "ScoreP1": 0,
+  "ScoreP2": 0,
+  "GamesPlayed": 0,
+  "AIMode": true,
+  "AIDifficulty": "moyen"
+}
