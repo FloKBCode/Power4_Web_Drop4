@@ -190,7 +190,6 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Si la partie n'est pas terminée et c'est le mode IA
 	if aiMode && board.Player == 2 && !board.GameOver {
-		// L'IA va jouer - on redirige vers une page d'attente
 		http.Redirect(w, r, "/game?ai_thinking=true", http.StatusSeeOther)
 		return
 	}
@@ -262,18 +261,18 @@ func resetScoresHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/game", http.StatusSeeOther)
 }
 
-// ========== SYSTÈME IA AMÉLIORÉ ==========
+// ========== SYSTÈME IA OPTIMISÉ ==========
 
 func getAIThinkingTime(difficulty string) int {
 	switch difficulty {
 	case "facile":
-		return 500 + rand.Intn(300) // 500-800ms
+		return 400 + rand.Intn(200) // 400-600ms
 	case "moyen":
-		return 800 + rand.Intn(400) // 800-1200ms
+		return 700 + rand.Intn(400) // 700-1100ms
 	case "difficile":
-		return 1200 + rand.Intn(600) // 1200-1800ms
+		return 1000 + rand.Intn(500) // 1000-1500ms
 	default:
-		return 800
+		return 700
 	}
 }
 
@@ -290,15 +289,18 @@ func getAIMove(b *game.Board, difficulty string) int {
 	}
 }
 
-// Facile : joue aléatoirement avec 30% de chance de bloquer
+// FACILE : 80-90% de chance pour le joueur de gagner
+// L'IA joue presque aléatoirement avec seulement 10% de chance de bloquer
 func aiEasy(b *game.Board) int {
-	// 30% de chance de bloquer le joueur
-	if rand.Intn(100) < 30 {
+	// Seulement 10% de chance de faire un coup intelligent
+	if rand.Intn(100) < 10 {
+		// Bloquer seulement si évident
 		if col := findWinningMove(b, 1); col != -1 {
 			return col
 		}
 	}
 	
+	// 90% du temps : jouer complètement aléatoirement
 	available := []int{}
 	for col := 0; col < 7; col++ {
 		if !b.IsColumnFull(col) {
@@ -311,30 +313,44 @@ func aiEasy(b *game.Board) int {
 	return available[rand.Intn(len(available))]
 }
 
-// Moyen : bloque et attaque systématiquement
+// MOYEN : 60-70% de chance pour le joueur de gagner
+// L'IA bloque systématiquement mais ne cherche pas à gagner agressivement
 func aiMedium(b *game.Board) int {
-	// 1. Gagner si possible
-	if col := findWinningMove(b, 2); col != -1 {
-		return col
+	// 1. Gagner si l'occasion se présente (30% du temps)
+	if rand.Intn(100) < 30 {
+		if col := findWinningMove(b, 2); col != -1 {
+			return col
+		}
 	}
 	
-	// 2. Bloquer l'adversaire
-	if col := findWinningMove(b, 1); col != -1 {
-		return col
+	// 2. Bloquer l'adversaire (70% du temps)
+	if rand.Intn(100) < 70 {
+		if col := findWinningMove(b, 1); col != -1 {
+			return col
+		}
 	}
 	
-	// 3. Jouer au centre si disponible
-	if !b.IsColumnFull(3) && rand.Intn(100) < 60 {
+	// 3. Préférence pour le centre (40% du temps)
+	if !b.IsColumnFull(3) && rand.Intn(100) < 40 {
 		return 3
 	}
 	
-	// 4. Jouer aléatoirement
+	// 4. Jouer colonnes centrales (2,3,4,5) en priorité
+	centerCols := []int{3, 2, 4, 1, 5, 0, 6}
+	for _, col := range centerCols {
+		if !b.IsColumnFull(col) && rand.Intn(100) < 60 {
+			return col
+		}
+	}
+	
+	// 5. Sinon aléatoire
 	return aiEasy(b)
 }
 
-// Difficile : stratégie avancée avec évaluation des positions
+// DIFFICILE : 40-50% de chance pour le joueur de gagner
+// L'IA joue stratégiquement avec anticipation
 func aiHard(b *game.Board) int {
-	// 1. Gagner immédiatement si possible
+	// 1. Gagner immédiatement
 	if col := findWinningMove(b, 2); col != -1 {
 		return col
 	}
@@ -344,24 +360,113 @@ func aiHard(b *game.Board) int {
 		return col
 	}
 	
-	// 3. Créer une menace double (fork)
-	if col := findForkMove(b, 2); col != -1 {
+	// 3. Créer une menace double (fork) - 70% du temps
+	if rand.Intn(100) < 70 {
+		if col := findForkMove(b, 2); col != -1 {
+			return col
+		}
+	}
+	
+	// 4. Bloquer une menace double adverse - 80% du temps
+	if rand.Intn(100) < 80 {
+		if col := findForkMove(b, 1); col != -1 {
+			return col
+		}
+	}
+	
+	// 5. Chercher à créer des alignements de 3
+	if col := findTwoInRowMove(b, 2); col != -1 {
 		return col
 	}
 	
-	// 4. Bloquer une menace double adverse
-	if col := findForkMove(b, 1); col != -1 {
-		return col
-	}
-	
-	// 5. Évaluer les meilleures colonnes
+	// 6. Évaluer les meilleures colonnes stratégiquement
 	bestCol := evaluateBestMove(b)
 	if bestCol != -1 {
 		return bestCol
 	}
 	
-	// 6. Fallback sur stratégie moyenne
+	// 7. Fallback sur stratégie moyenne
 	return aiMedium(b)
+}
+
+// Trouve un coup qui crée 2 jetons alignés avec possibilité d'extension
+func findTwoInRowMove(b *game.Board, player int) int {
+	for col := 0; col < 7; col++ {
+		if b.IsColumnFull(col) {
+			continue
+		}
+		
+		row := simulateMove(b, col, player)
+		if row == -1 {
+			continue
+		}
+		
+		if countAlignments(b, row, col, player, 2) > 0 {
+			b.Grid[row][col] = 0
+			return col
+		}
+		b.Grid[row][col] = 0
+	}
+	return -1
+}
+
+// Compte le nombre d'alignements d'une certaine longueur
+func countAlignments(b *game.Board, row, col, player, length int) int {
+	count := 0
+	
+	// Horizontal
+	if checkAlignment(b, row, col, player, 0, 1, length) {
+		count++
+	}
+	// Vertical
+	if checkAlignment(b, row, col, player, 1, 0, length) {
+		count++
+	}
+	// Diagonale \
+	if checkAlignment(b, row, col, player, 1, 1, length) {
+		count++
+	}
+	// Diagonale /
+	if checkAlignment(b, row, col, player, 1, -1, length) {
+		count++
+	}
+	
+	return count
+}
+
+// Vérifie un alignement dans une direction
+func checkAlignment(b *game.Board, row, col, player, dRow, dCol, length int) bool {
+	count := 1
+	
+	// Direction positive
+	for i := 1; i < 4; i++ {
+		newRow := row + dRow*i
+		newCol := col + dCol*i
+		if newRow < 0 || newRow >= 6 || newCol < 0 || newCol >= 7 {
+			break
+		}
+		if b.Grid[newRow][newCol] == player {
+			count++
+		} else {
+			break
+		}
+	}
+	
+	// Direction négative
+	for i := 1; i < 4; i++ {
+		newRow := row - dRow*i
+		newCol := col - dCol*i
+		if newRow < 0 || newRow >= 6 || newCol < 0 || newCol >= 7 {
+			break
+		}
+		if b.Grid[newRow][newCol] == player {
+			count++
+		} else {
+			break
+		}
+	}
+	
+	return count >= length
 }
 
 // Trouve un coup qui crée une menace double (fork)
@@ -477,11 +582,14 @@ func evaluateBestMove(b *game.Board) int {
 func evaluatePosition(b *game.Board, row, col, player int) int {
 	score := 0
 	
+	// Préférence pour le centre
 	centerDistance := abs(col - 3)
 	score += (3 - centerDistance) * 3
 	
+	// Préférence pour les positions basses
 	score += (5 - row) * 2
 	
+	// Évaluer toutes les directions
 	score += evaluateDirection(b, row, col, player, 0, 1)
 	score += evaluateDirection(b, row, col, player, 1, 0)
 	score += evaluateDirection(b, row, col, player, 1, 1)

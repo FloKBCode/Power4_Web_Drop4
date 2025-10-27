@@ -3,31 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puissance 4 - Scores Néon</title>
+  <title>Puissance 4 - En jeu</title>
   <link rel="stylesheet" href="/static/style.css">
-  <style>
-    /* Animation de transition pour le bouton audio */
-    .audio-toggle {
-      transition: all 0.3s ease, background 0.3s ease !important;
-    }
-    
-    .audio-toggle:hover {
-      transform: scale(1.15) rotate(10deg) !important;
-    }
-  </style>
 </head>
 <body>
   <!-- BOUTON RETOUR MENU -->
   <a href="/" class="menu-btn">⬅️ Menu</a>
 
-  <!-- CONTRÔLE AUDIO AMÉLIORÉ -->
+  <!-- CONTRÔLE AUDIO -->
   <button id="audioToggle" class="audio-toggle" title="Activer/Désactiver la musique">
     <span id="audioIcon">🔊</span>
   </button>
 
   <h1>🎮 Puissance 4 🎮</h1>
   
-  <!-- TABLEAU DE SCORES NÉON avec pseudos du backend -->
+  <!-- TABLEAU DE SCORES NÉON -->
   <div class="scoreboard neon">
     <div class="player-label red">{{.Player1Name}}</div>
     <div class="score-value">{{.ScoreP1}}</div>
@@ -36,7 +26,7 @@
     <div class="player-label yellow">{{.Player2Name}}</div>
   </div>
 
-  <!-- INFO JOUEUR avec pseudo dynamique -->
+  <!-- INFO JOUEUR -->
   {{if .GameOver}}
     {{if eq .Winner 0}}
       <div class="player-info">⚖️ Match nul !</div>
@@ -52,11 +42,14 @@
     <div class="error-message">{{.ErrorMessage}}</div>
   {{end}}
   
-  <!-- OVERLAY AI THINKING -->
-  <div id="aiThinking" class="ai-thinking-overlay" style="display: none;">
+  <!-- OVERLAY IA AMÉLIORÉ -->
+  <div id="aiThinking" class="ai-thinking-overlay">
     <div class="ai-thinking-content">
       <div class="ai-thinking-spinner"></div>
-      <p>🤖 L'IA réfléchit...</p>
+      <div class="ai-thinking-text">
+        <p class="ai-main-text">🤖 L'ordinateur réfléchit...</p>
+        <p class="ai-sub-text">Analyse en cours</p>
+      </div>
     </div>
   </div>
 
@@ -148,7 +141,7 @@
   </div>
 
   <script>
-    // === GESTION AUDIO ===
+    // === GESTION AUDIO AMÉLIORÉE ===
     const bgMusic = document.getElementById('bgMusic');
     const dropSound = document.getElementById('dropSound');
     const winSound = document.getElementById('winSound');
@@ -158,27 +151,41 @@
     const audioIcon = document.getElementById('audioIcon');
     
     let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
-    let musicStarted = sessionStorage.getItem('musicStarted') === 'true';
+    let musicStarted = false;
+    
+    // Fonction pour démarrer la musique une seule fois
+    function startMusic() {
+      if (!musicStarted && audioEnabled) {
+        bgMusic.volume = 0.3;
+        bgMusic.play().then(() => {
+          musicStarted = true;
+          console.log('Musique démarrée');
+        }).catch(e => {
+          console.log('Autoplay bloqué:', e);
+          // Réessayer au premier clic
+          document.body.addEventListener('click', function startOnClick() {
+            if (audioEnabled) {
+              bgMusic.play().then(() => {
+                musicStarted = true;
+                document.body.removeEventListener('click', startOnClick);
+              }).catch(e => console.log('Erreur lecture:', e));
+            }
+          }, { once: true });
+        });
+      }
+    }
     
     // Initialiser l'état audio
     function updateAudioState() {
       if (audioEnabled) {
         audioIcon.textContent = '🔊';
-        audioToggle.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
-        
-        // Ne démarrer la musique qu'une seule fois par session
-        if (!musicStarted) {
-          bgMusic.volume = 0.3;
-          bgMusic.play().then(() => {
-            sessionStorage.setItem('musicStarted', 'true');
-            musicStarted = true;
-          }).catch(e => console.log('Autoplay bloqué:', e));
-        } else {
-          bgMusic.play().catch(e => console.log('Play error:', e));
-        }
+        audioToggle.classList.remove('muted');
+        audioToggle.classList.add('active');
+        startMusic();
       } else {
         audioIcon.textContent = '🔇';
-        audioToggle.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+        audioToggle.classList.remove('active');
+        audioToggle.classList.add('muted');
         bgMusic.pause();
       }
     }
@@ -191,9 +198,9 @@
       localStorage.setItem('audioEnabled', audioEnabled);
       
       // Animation du bouton
-      audioToggle.style.transform = 'scale(0.9) rotate(15deg)';
+      audioToggle.style.transform = 'scale(0.85) rotate(15deg)';
       setTimeout(() => {
-        audioToggle.style.transform = 'scale(1) rotate(0deg)';
+        audioToggle.style.transform = '';
       }, 150);
       
       updateAudioState();
@@ -271,13 +278,21 @@
             'Content-Type': 'application/x-www-form-urlencoded',
           }
         }).then(() => {
-          // Recharger la page sans le paramètre
-          window.location.href = '/game';
+          // Jouer le son de drop pour l'IA
+          playSound(dropSound);
+          
+          // Petit délai pour entendre le son avant de recharger
+          setTimeout(() => {
+            window.location.href = '/game';
+          }, 300);
         }).catch(err => {
           console.error('Erreur IA:', err);
           window.location.href = '/game';
         });
-      }, 1000); // Délai visible pour l'utilisateur
+      }, 800);
+    } else {
+      // Masquer l'overlay si pas en mode IA thinking
+      aiThinking.style.display = 'none';
     }
     
     // Gérer la soumission des formulaires
