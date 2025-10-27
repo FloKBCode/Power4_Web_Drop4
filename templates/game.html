@@ -5,6 +5,337 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Puissance 4 - En jeu</title>
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Repositionner le bouton audio en haut à droite */
+    .audio-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .audio-toggle:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .audio-toggle:active {
+      transform: translateY(-1px) scale(0.95);
+    }
+
+    .audio-icon {
+      font-size: 1.8em;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      transition: transform 0.3s ease;
+    }
+
+    .audio-toggle.muted {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .audio-toggle.muted .audio-icon {
+      opacity: 0.6;
+    }
+
+    /* Améliorer l'overlay IA */
+    .ai-thinking-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      animation: fadeInOverlay 0.3s ease;
+    }
+
+    @keyframes fadeInOverlay {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .ai-thinking-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 50px 70px;
+      border-radius: 25px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(102, 126, 234, 0.8),
+                  0 0 100px rgba(118, 75, 162, 0.6);
+      animation: slideUpBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      max-width: 90%;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes slideUpBounce {
+      0% { 
+        transform: translateY(100px) scale(0.8); 
+        opacity: 0; 
+      }
+      60% { 
+        transform: translateY(-10px) scale(1.02); 
+      }
+      100% { 
+        transform: translateY(0) scale(1); 
+        opacity: 1; 
+      }
+    }
+
+    .ai-brain-container {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .ai-brain {
+      font-size: 5em;
+      animation: brainPulse 1.5s ease-in-out infinite;
+      display: inline-block;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+
+    @keyframes brainPulse {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      25% { transform: scale(1.05) rotate(-5deg); }
+      75% { transform: scale(1.05) rotate(5deg); }
+    }
+
+    .thinking-dots {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      font-size: 2em;
+      color: white;
+      animation: dotBounce 1.4s ease-in-out infinite;
+      opacity: 0;
+    }
+
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotBounce {
+      0%, 80%, 100% { 
+        opacity: 0; 
+        transform: translateY(0); 
+      }
+      40% { 
+        opacity: 1; 
+        transform: translateY(-10px); 
+      }
+    }
+
+    .ai-thinking-text {
+      margin: 20px 0;
+    }
+
+    .ai-main-text {
+      color: white;
+      font-size: 1.8em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      letter-spacing: 1px;
+    }
+
+    .ai-sub-text {
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.2em;
+      font-style: italic;
+      margin: 0;
+      min-height: 1.5em;
+      animation: textFade 0.5s ease;
+    }
+
+    @keyframes textFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 25px;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #fff, #FFD700, #fff);
+      border-radius: 10px;
+      animation: progressSlide 2s ease-in-out infinite;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+
+    @keyframes progressSlide {
+      0% { 
+        width: 0%; 
+        transform: translateX(0);
+      }
+      50% { 
+        width: 100%; 
+        transform: translateX(0);
+      }
+      100% { 
+        width: 0%; 
+        transform: translateX(100%);
+      }
+    }
+
+    /* === ACCESSIBILITÉ === */
+    
+    /* Mode réduit d'animations pour utilisateurs sensibles */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      
+      .token.last-move,
+      .token.winning {
+        animation: none !important;
+      }
+      
+      .ai-thinking-overlay,
+      .ai-thinking-content {
+        animation: none !important;
+      }
+    }
+
+    /* Amélioration contrastes pour malvoyants */
+    @media (prefers-contrast: high) {
+      .scoreboard.neon {
+        border-width: 3px;
+        border-color: #00ffff;
+      }
+      
+      .token.red {
+        background: #ff0000;
+        border: 3px solid #000;
+      }
+      
+      .token.yellow {
+        background: #ffff00;
+        border: 3px solid #000;
+      }
+      
+      .cell {
+        border-width: 4px;
+      }
+    }
+
+    /* Navigation clavier améliorée */
+    .cell:focus-visible,
+    .reset-btn:focus-visible,
+    .score-reset-btn:focus-visible,
+    .menu-btn:focus-visible,
+    .audio-toggle:focus-visible {
+      outline: 4px solid #FFD700;
+      outline-offset: 4px;
+      box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.3);
+    }
+
+    /* Skip to main content pour lecteurs d'écran */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #667eea;
+      color: white;
+      padding: 8px;
+      text-decoration: none;
+      z-index: 10000;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .audio-toggle {
+        top: 10px;
+        right: 10px;
+        width: 55px;
+        height: 55px;
+      }
+      
+      .audio-icon {
+        font-size: 1.5em;
+      }
+
+      .ai-thinking-content {
+        padding: 40px 50px;
+      }
+
+      .ai-brain {
+        font-size: 4em;
+      }
+
+      .ai-main-text {
+        font-size: 1.5em;
+      }
+
+      .ai-sub-text {
+        font-size: 1.1em;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .audio-toggle {
+        width: 50px;
+        height: 50px;
+      }
+
+      .audio-icon {
+        font-size: 1.4em;
+      }
+
+      .ai-thinking-content {
+        padding: 30px 35px;
+      }
+
+      .ai-brain {
+        font-size: 3em;
+      }
+
+      .ai-main-text {
+        font-size: 1.3em;
+      }
+
+      .ai-sub-text {
+        font-size: 1em;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- BOUTON RETOUR MENU -->
@@ -13,14 +344,9 @@
     <span class="menu-text">Menu</span>
   </a>
 
-  <!-- CONTRÔLE AUDIO AMÉLIORÉ -->
-  <button id="audioToggle" class="audio-toggle" title="Activer/Désactiver la musique" aria-label="Toggle audio">
-    <div class="audio-icon-container">
-      <span id="audioIcon" class="audio-icon">🔊</span>
-      <div class="audio-wave wave1"></div>
-      <div class="audio-wave wave2"></div>
-      <div class="audio-wave wave3"></div>
-    </div>
+  <!-- CONTRÔLE AUDIO -->
+  <button id="audioToggle" class="audio-toggle" title="Activer/Désactiver le son" aria-label="Toggle audio">
+    <span id="audioIcon" class="audio-icon">🔊</span>
   </button>
 
   <h1>🎮 Puissance 4 🎮</h1>
@@ -81,7 +407,7 @@
     </div>
   {{end}}
   
-  <!-- OVERLAY IA AMÉLIORÉ -->
+  <!-- OVERLAY IA -->
   <div id="aiThinking" class="ai-thinking-overlay">
     <div class="ai-thinking-content">
       <div class="ai-brain-container">
@@ -173,9 +499,6 @@
   </div>
 
   <!-- AUDIO ELEMENTS -->
-  <audio id="bgMusic" loop preload="auto">
-    <source src="/static/sounds/background.mp3" type="audio/mpeg">
-  </audio>
   <audio id="dropSound" preload="auto">
     <source src="/static/sounds/drop.mp3" type="audio/mpeg">
   </audio>
@@ -184,9 +507,6 @@
   </audio>
   <audio id="loseSound" preload="auto">
     <source src="/static/sounds/lose.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="errorSound" preload="auto">
-    <source src="/static/sounds/error.mp3" type="audio/mpeg">
   </audio>
 
   <div id="gameData"
@@ -200,37 +520,20 @@
   </div>
 
   <script>
-    // === GESTION AUDIO PERFECTIONNÉE ===
-    const bgMusic = document.getElementById('bgMusic');
+    // === GESTION AUDIO ===
     const dropSound = document.getElementById('dropSound');
     const winSound = document.getElementById('winSound');
     const loseSound = document.getElementById('loseSound');
-    const errorSound = document.getElementById('errorSound');
     const audioToggle = document.getElementById('audioToggle');
     const audioIcon = document.getElementById('audioIcon');
     
     let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
-    let musicStarted = false;
     let userInteracted = false;
-    
-    // Fonction pour démarrer la musique
-    function startMusic() {
-      if (!musicStarted && audioEnabled && userInteracted) {
-        bgMusic.volume = 0.25;
-        bgMusic.play().then(() => {
-          musicStarted = true;
-          console.log('✅ Musique de fond démarrée');
-        }).catch(e => {
-          console.log('⚠️ Autoplay bloqué par le navigateur');
-        });
-      }
-    }
     
     // Détecter la première interaction utilisateur
     function enableAudio() {
       if (!userInteracted) {
         userInteracted = true;
-        startMusic();
         document.removeEventListener('click', enableAudio);
         document.removeEventListener('keydown', enableAudio);
       }
@@ -244,28 +547,20 @@
       if (audioEnabled) {
         audioIcon.textContent = '🔊';
         audioToggle.classList.remove('muted');
-        audioToggle.classList.add('active');
-        if (userInteracted) {
-          startMusic();
-        }
       } else {
         audioIcon.textContent = '🔇';
-        audioToggle.classList.remove('active');
         audioToggle.classList.add('muted');
-        bgMusic.pause();
-        musicStarted = false;
       }
     }
     
     updateAudioState();
 
-    // Toggle audio avec animation
+    // Toggle audio
     audioToggle.addEventListener('click', (e) => {
       e.stopPropagation();
       audioEnabled = !audioEnabled;
       localStorage.setItem('audioEnabled', audioEnabled);
       
-      // Animation du bouton
       audioToggle.style.transform = 'scale(0.85) rotate(15deg)';
       setTimeout(() => {
         audioToggle.style.transform = '';
@@ -274,7 +569,7 @@
       updateAudioState();
     });
 
-    // Jouer un son avec gestion d'erreur
+    // Jouer un son
     function playSound(sound, volume = 0.5) {
       if (audioEnabled && sound && userInteracted) {
         sound.currentTime = 0;
@@ -303,22 +598,20 @@
 
     // === JOUER LES SONS DE FIN DE PARTIE ===
     window.addEventListener('load', () => {
-      // Attendre un peu pour que l'utilisateur voie l'animation
       setTimeout(() => {
-        // Son de victoire/défaite
         if (soundToPlay === "win") {
-          if (winner === 1) {
+          // Victoire joueur 1 en PvP ou victoire contre IA
+          if (winner === 1 || (winner === 1 && isAIMode)) {
             playSound(winSound, 0.6);
-          } else if (winner === 2 && !isAIMode) {
+          } 
+          // Victoire joueur 2 en PvP
+          else if (winner === 2 && !isAIMode) {
             playSound(winSound, 0.6);
-          } else if (winner === 2 && isAIMode) {
+          } 
+          // Défaite contre l'IA
+          else if (winner === 2 && isAIMode) {
             playSound(loseSound, 0.5);
           }
-        }
-        
-        // Son d'erreur
-        if (gameState.hasError) {
-          playSound(errorSound, 0.4);
         }
       }, 800);
     });
@@ -328,7 +621,7 @@
     const aiSubText = document.getElementById('aiSubText');
     const forms = document.querySelectorAll('.cell-form');
     
-    // Messages aléatoires pour l'IA
+    // Messages pour l'IA
     const aiMessages = {
       facile: [
         "Je choisis au hasard...",
@@ -355,34 +648,27 @@
     const aiShouldThink = urlParams.get('ai_thinking') === 'true';
     
     if (aiShouldThink && isAIMode && !gameOver) {
-      // Choisir un message aléatoire selon la difficulté
       const messages = aiMessages[gameState.aiDifficulty] || aiMessages.moyen;
       const randomMessage = messages[Math.floor(Math.random() * messages.length)];
       aiSubText.textContent = randomMessage;
       
-      // Afficher l'overlay
       aiThinking.style.display = 'flex';
       
-      // Désactiver tous les formulaires
       forms.forEach(form => {
         form.style.pointerEvents = 'none';
       });
       
-      // Simuler le délai de réflexion puis faire jouer l'IA
       const thinkingDelay = getAIThinkingDelay(gameState.aiDifficulty);
       
       setTimeout(() => {
-        // Faire jouer l'IA côté serveur
         fetch('/ai-play', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           }
         }).then(() => {
-          // Jouer le son de drop pour l'IA
           playSound(dropSound, 0.5);
           
-          // Petit délai pour entendre le son
           setTimeout(() => {
             window.location.href = '/game';
           }, 400);
@@ -392,16 +678,14 @@
         });
       }, thinkingDelay);
     } else {
-      // Masquer l'overlay
       aiThinking.style.display = 'none';
     }
     
-    // Délai selon la difficulté
     function getAIThinkingDelay(difficulty) {
       switch(difficulty) {
-        case 'facile': return 600 + Math.random() * 400; // 600-1000ms
-        case 'moyen': return 1000 + Math.random() * 500; // 1000-1500ms
-        case 'difficile': return 1500 + Math.random() * 800; // 1500-2300ms
+        case 'facile': return 600 + Math.random() * 400;
+        case 'moyen': return 1000 + Math.random() * 500;
+        case 'difficile': return 1500 + Math.random() * 800;
         default: return 1000;
       }
     }
@@ -409,13 +693,10 @@
     // Gérer la soumission des formulaires
     forms.forEach(form => {
       form.addEventListener('submit', (e) => {
-        // Jouer le son de drop
         playSound(dropSound, 0.5);
         
-        // Désactiver tous les formulaires
         forms.forEach(f => f.style.pointerEvents = 'none');
         
-        // Animation visuelle sur la case cliquée
         const button = form.querySelector('.cell');
         button.style.transform = 'scale(0.95)';
       });
@@ -435,7 +716,6 @@
       
       button.addEventListener('mouseenter', () => {
         if (!button.disabled && !gameOver) {
-          // Highlight toute la colonne
           forms.forEach(f => {
             if (f.dataset.column === col) {
               f.querySelector('.cell').classList.add('hover-column');
@@ -449,11 +729,6 @@
           f.querySelector('.cell').classList.remove('hover-column');
         });
       });
-    });
-
-    // Empêcher la pause de la musique lors des navigation
-    window.addEventListener('beforeunload', () => {
-      // La musique continue car on ne la pause pas
     });
   </script>
 </body>
