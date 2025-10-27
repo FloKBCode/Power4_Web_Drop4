@@ -32,62 +32,54 @@
     <div class="player-info">Au tour de {{.GetCurrentPlayerName}}</div>
   {{end}}
   
-  {{if .Error}}
-    <div class="error-message">{{.Error}}</div>
+  <!-- Correction : utilisation de ErrorMessage au lieu de Error -->
+  {{if .ErrorMessage}}
+    <div class="error-message">{{.ErrorMessage}}</div>
   {{end}}
   
+  <!-- OVERLAY AI THINKING -->
+  <div id="aiThinking" class="ai-thinking-overlay" style="display: none;">
+    <div class="ai-thinking-content">
+      <div class="ai-thinking-spinner"></div>
+      <p>🤖 L'IA réfléchit...</p>
+    </div>
+  </div>
+
   <!-- GRILLE DE JEU -->
   <div class="game-container">
     <div class="grid">
-      {{range $i := Seq 6}}
-        {{range $j := Seq 7}}
-          <form method="POST" action="/play" style="margin: 0; padding: 0;">
+      {{range $i := .Grid}}
+        {{range $j, $cell := $i}}
+          <form method="POST" action="/play" style="margin: 0; padding: 0;" class="cell-form">
             <input type="hidden" name="column" value="{{$j}}">
-            <button type="submit" class="cell" {{if $.GameOver}}disabled{{end}} {{if IsColumnFull $j}}disabled{{end}}>
-              {{$cellValue := $.GetCell $i $j}}
-              {{if eq $cellValue 1}}
-                {{$isLastMove := false}}
-                {{if $.History}}
-                  {{$lastMove := index $.History (sub (len $.History) 1)}}
-                  {{if and (eq $lastMove.Row $i) (eq $lastMove.Column $j)}}
-                    {{$isLastMove = true}}
-                  {{end}}
-                {{end}}
-                <div class="token red {{if $isLastMove}}last-move{{end}} {{if $.IsWinningCell $i $j}}active{{end}}"></div>
-              {{else if eq $cellValue 2}}
-                {{$isLastMove := false}}
-                {{if $.History}}
-                  {{$lastMove := index $.History (sub (len $.History) 1)}}
-                  {{if and (eq $lastMove.Row $i) (eq $lastMove.Column $j)}}
-                    {{$isLastMove = true}}
-                  {{end}}
-                {{end}}
-                <div class="token yellow {{if $isLastMove}}last-move{{end}} {{if $.IsWinningCell $i $j}}active{{end}}"></div>
+            <button type="submit" class="cell" {{if $.GameOver}}disabled{{end}} {{if $.IsColumnFull $j}}disabled{{end}}>
+              {{if eq $cell 1}}
+                <div class="token red {{if $.IsWinningCell $i $j}}active{{end}}"></div>
+              {{else if eq $cell 2}}
+                <div class="token yellow {{if $.IsWinningCell $i $j}}active{{end}}"></div>
               {{end}}
             </button>
           </form>
         {{end}}
       {{end}}
     </div>
-  </div>
-  <!-- Historique des coups -->
-   {{if .History}}
-   <div class="history-panel">
-    <h3>📜 Historique</h3>
-    <div class="history-list">
-      {{range $index, $move := .History}}
-        <div class="history-item">
-          #{{add $index 1}} - 
-          {{if eq $move.Player 1}}🔴{{else}}🟡{{end}}
-          Col {{add $move.Column 1}}
-        </div>
-      {{end}}
+
+    <!-- Historique des coups -->
+    {{if .History}}
+    <div class="history-panel">
+      <h3>📜 Historique</h3>
+      <div class="history-list">
+        {{range $index, $move := .History}}
+          <div class="history-item">
+            #{{add $index 1}} - 
+            {{if eq $move.Player 1}}🔴{{else}}🟡{{end}}
+            Col {{add $move.Column 1}}
+          </div>
+        {{end}}
+      </div>
     </div>
+    {{end}}
   </div>
-  {{end}}
-  
-  <!-- Masqué car on clique directement sur les cases -->
-  <div class="controls" style="display: none;"></div>
   
   <!-- BOUTONS DE CONTRÔLE -->
   <div class="button-container">
@@ -98,5 +90,128 @@
       <button type="submit" class="score-reset-btn">📊 Reset Scores</button>
     </form>
   </div>
+
+  <!-- AUDIO ELEMENTS -->
+  <audio id="bgMusic" loop>
+    <source src="/static/sounds/background.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="dropSound">
+    <source src="/static/sounds/drop.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="winSound">
+    <source src="/static/sounds/win.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="loseSound">
+    <source src="/static/sounds/lose.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="drawSound">
+    <source src="/static/sounds/draw.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="errorSound">
+    <source src="/static/sounds/error.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // === GESTION AUDIO ===
+    const bgMusic = document.getElementById('bgMusic');
+    const dropSound = document.getElementById('dropSound');
+    const winSound = document.getElementById('winSound');
+    const loseSound = document.getElementById('loseSound');
+    const drawSound = document.getElementById('drawSound');
+    const errorSound = document.getElementById('errorSound');
+    const audioToggle = document.getElementById('audioToggle');
+    
+    let audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+    
+    // Initialiser l'état audio
+    if (audioEnabled) {
+      audioToggle.textContent = '🔊';
+      bgMusic.volume = 0.3;
+      bgMusic.play().catch(e => console.log('Autoplay bloqué:', e));
+    } else {
+      audioToggle.textContent = '🔇';
+      bgMusic.pause();
+    }
+
+    // Toggle audio
+    audioToggle.addEventListener('click', () => {
+      audioEnabled = !audioEnabled;
+      localStorage.setItem('audioEnabled', audioEnabled);
+      
+      if (audioEnabled) {
+        audioToggle.textContent = '🔊';
+        bgMusic.play().catch(e => console.log('Play error:', e));
+      } else {
+        audioToggle.textContent = '🔇';
+        bgMusic.pause();
+      }
+    });
+
+    function playSound(sound) {
+      if (audioEnabled && sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Sound error:', e));
+      }
+    }
+
+    // === SONS BASÉS SUR L'ÉTAT DU JEU ===
+    const soundToPlay = "";
+    const isAIMode = false;
+    const currentPlayer = {{.Player}};
+    const gameOver = {{.GameOver}};
+    const winner = {{.Winner}};
+
+    // Jouer les sons de fin de partie
+    window.addEventListener('load', () => {
+      if (soundToPlay === "win") {
+        setTimeout(() => {
+          if (winner === 1) {
+            playSound(winSound);
+          } else if (winner === 2 && !isAIMode) {
+            playSound(winSound);
+          } else if (winner === 2 && isAIMode) {
+            playSound(loseSound);
+          }
+        }, 600);
+      } else if (soundToPlay === "draw") {
+        setTimeout(() => playSound(drawSound), 600);
+      }
+    });
+
+    // === GESTION DES FORMULAIRES ===
+    const aiThinking = document.getElementById('aiThinking');
+    const forms = document.querySelectorAll('.cell-form');
+    
+    forms.forEach(form => {
+      form.addEventListener('submit', (e) => {
+        // Jouer le son de jeton
+        playSound(dropSound);
+        
+        // Désactiver tous les formulaires pour éviter les clics multiples
+        forms.forEach(f => f.style.pointerEvents = 'none');
+        
+        // Si mode IA et c'est le tour du joueur 1, afficher l'overlay
+        if (isAIMode && !gameOver && currentPlayer === 1) {
+          // Délai pour laisser l'animation du jeton se terminer
+          setTimeout(() => {
+            aiThinking.style.display = 'flex';
+          }, 500);
+        }
+      });
+    });
+
+    // === GESTION DES ERREURS ===
+    {{if .ErrorMessage}}
+      playSound(errorSound);
+    {{end}}
+
+    // Empêcher les clics multiples pendant que l'IA réfléchit
+    if (isAIMode && currentPlayer === 2 && !gameOver) {
+      forms.forEach(form => {
+        form.style.pointerEvents = 'none';
+      });
+      aiThinking.style.display = 'flex';
+    }
+  </script>
 </body>
 </html>

@@ -31,7 +31,7 @@ type GameData struct {
 	ErrorMessage string
 	AIMode       bool
 	AIDifficulty string
-	SoundToPlay  string // NOUVEAU : son à jouer
+	SoundToPlay  string
 }
 
 const saveFile = "power4_save.json"
@@ -133,7 +133,7 @@ func continueHandler(w http.ResponseWriter, r *http.Request) {
 func gameHandler(w http.ResponseWriter, r *http.Request) {
 	soundToPlay := ""
 	
-	// Go décide quel son jouer automatiquement
+	// Déterminer quel son jouer
 	if board.GameOver {
 		if board.Winner == 0 {
 			soundToPlay = "draw"
@@ -244,13 +244,13 @@ func resetScoresHandler(w http.ResponseWriter, r *http.Request) {
 func getAIThinkingTime(difficulty string) int {
 	switch difficulty {
 	case "facile":
-		return 300 + rand.Intn(200) // 300-500ms
+		return 500 + rand.Intn(300) // 500-800ms
 	case "moyen":
-		return 600 + rand.Intn(400) // 600-1000ms
+		return 800 + rand.Intn(400) // 800-1200ms
 	case "difficile":
-		return 1000 + rand.Intn(500) // 1000-1500ms
+		return 1200 + rand.Intn(600) // 1200-1800ms
 	default:
-		return 600
+		return 800
 	}
 }
 
